@@ -36,21 +36,21 @@ export default function SpecialitySelect() {
       <div className="speciality-grid">
         {SPECIALITIES.map((sp) => (
           <div
-            key={sp.name}
-            className="speciality-card"
-            style={{ backgroundImage: `url(${sp.bg})` }}
-            onClick={() =>
-              navigate(`/doctors?speciality=${encodeURIComponent(sp.name)}`)
-            }
-          >
-            {/* Bottom gradient overlay */}
-            <div className="card-overlay" />
+  key={sp.name}
+  className="speciality-card"
+  style={{ "--bg": `url(${sp.bg})` }}
+  onClick={() =>
+    navigate(`/doctors?speciality=${encodeURIComponent(sp.name)}`)
+  }
+>
+  <div className="card-overlay" />
 
-            {/* Text content (matches CSS) */}
-            <div className="card-content">
-              <h3>{sp.name}</h3>
-            </div>
-          </div>
+  <div className="card-bottom">
+    <h3>{sp.name}</h3>
+  </div>
+</div>
+
+
         ))}
       </div>
     </div>
