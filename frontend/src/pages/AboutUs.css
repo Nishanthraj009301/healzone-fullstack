@@ -1,0 +1,95 @@
+/* ================= ABOUT PAGE ================= */
+
+.about-page {
+  min-height: 100vh;
+  background: linear-gradient(
+    180deg,
+    #020617 0%,
+    #020617 45%,
+    #040b1f 100%
+  );
+  padding: 3rem 2rem 4rem;
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ================= CONTAINER ================= */
+
+.about-container {
+  max-width: 80rem; /* same as Home */
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* ================= LOGO ================= */
+
+.about-logo {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 3rem;
+}
+
+.about-logo img {
+  height: 80px; /* matches Home header logo */
+  width: auto;
+  cursor: pointer;
+
+  filter:
+    drop-shadow(0 0 10px rgba(255, 95, 162, 0.25))
+    drop-shadow(0 0 20px rgba(255, 95, 162, 0.15));
+
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.about-logo img:hover {
+  transform: scale(1.05);
+  opacity: 0.95;
+}
+
+/* ================= HEADINGS ================= */
+
+.about-container h1 {
+  font-size: 2.4rem;
+  line-height: 1.2;
+  margin-bottom: 1.6rem;
+  color: #f8fafc;
+}
+
+.about-container h1 span {
+  color: #38bdf8; /* same accent as Home */
+}
+
+/* ================= TEXT ================= */
+
+.about-container p {
+  font-size: 1rem;
+  line-height: 1.75;
+  margin-bottom: 1.2rem;
+  color: #94a3b8; /* Home paragraph color */
+}
+
+.about-highlight {
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+/* ================= TAGLINE ================= */
+
+.about-tagline {
+  margin-top: 2rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .about-container h1 {
+    font-size: 2rem;
+  }
+
+  .about-logo img {
+    height: 64px;
+  }
+}

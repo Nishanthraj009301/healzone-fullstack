@@ -1,0 +1,188 @@
+/* ===============================
+   PAGE BACKGROUND (DARK)
+   =============================== */
+
+body {
+  background: linear-gradient(
+    180deg,
+    #020617 0%,
+    #020617 40%,
+    #040b1f 100%
+  );
+}
+
+/* ===============================
+   VENDOR REGISTRATION FORM (WHITE)
+   =============================== */
+
+.vendor-form-wrapper {
+  max-width: 860px;
+  margin: 60px auto;
+  padding: 42px 48px;
+  background: #ffffff;
+  border-radius: 22px;
+  box-shadow: 0 30px 70px rgba(2, 6, 23, 0.45);
+  animation: fadeUp 0.4s ease;
+}
+
+/* ---------- TITLE ---------- */
+
+.vendor-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #020617;
+  margin-bottom: 6px;
+}
+
+.vendor-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 38px;
+}
+
+/* ---------- FORM ---------- */
+
+.vendor-form {
+  width: 100%;
+}
+
+/* ---------- SECTIONS ---------- */
+
+.form-section {
+  margin-bottom: 34px;
+}
+
+.form-section h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #020617;
+  margin-bottom: 14px;
+  position: relative;
+  padding-left: 12px;
+}
+
+.form-section h4::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 4px;
+  height: 16px;
+  background: #ec4899; /* Healzone pink */
+  border-radius: 4px;
+}
+
+/* ---------- INPUTS ---------- */
+
+.vendor-form input,
+.vendor-form select,
+.vendor-form textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+  color: #020617;
+  background: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.vendor-form textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.vendor-form input::placeholder,
+.vendor-form textarea::placeholder {
+  color: #9ca3af;
+}
+
+.vendor-form select option {
+  background: #ffffff;
+  color: #020617;
+}
+
+.vendor-form input:focus,
+.vendor-form select:focus,
+.vendor-form textarea:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.15);
+}
+
+/* ---------- GRID ---------- */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-top: 12px;
+}
+
+/* ---------- BUTTON ---------- */
+
+.vendor-submit-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(
+    135deg,
+    #ec4899,
+    #f472b6
+  );
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.vendor-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(236, 72, 153, 0.35);
+}
+
+.vendor-submit-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 16px rgba(236, 72, 153, 0.25);
+}
+
+.vendor-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 768px) {
+  .vendor-form-wrapper {
+    padding: 30px 22px;
+    margin: 30px 16px;
+  }
+
+  .vendor-title {
+    font-size: 24px;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- ANIMATION ---------- */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

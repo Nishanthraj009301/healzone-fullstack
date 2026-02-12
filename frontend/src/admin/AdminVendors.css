@@ -1,0 +1,156 @@
+/* ================= ADMIN PAGE ================= */
+
+.admin-page {
+  min-height: 100vh;
+  background: linear-gradient(
+    180deg,
+    #020617 0%,
+    #020617 40%,
+    #040b1f 100%
+  );
+  padding: 40px 24px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #e5e7eb;
+}
+
+/* ================= HEADER ================= */
+
+.admin-header {
+  max-width: 900px;
+  margin: 0 auto 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+/* LOGOUT BUTTON */
+.admin-logout {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1.4rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-logout:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+}
+
+/* ================= VENDOR CARD ================= */
+
+.vendor-card {
+  max-width: 900px;
+  margin: 0 auto 18px;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 1rem;
+  padding: 20px 24px;
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.6);
+}
+
+.vendor-card h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 8px;
+}
+
+/* ================= META ================= */
+
+.vendor-meta {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 14px;
+}
+
+.vendor-meta span {
+  display: inline-block;
+  margin-right: 18px;
+}
+
+/* ================= ACTION BUTTONS ================= */
+
+.vendor-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* APPROVE */
+.btn-approve {
+  background: #22c55e;
+  color: #022c22;
+  border: none;
+  padding: 0.45rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-approve:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.35);
+}
+
+/* REJECT */
+.btn-reject {
+  background: #fb7185;
+  color: #1f2933;
+  border: none;
+  padding: 0.45rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-reject:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(251, 113, 133, 0.35);
+}
+
+/* ================= EMPTY / LOADING ================= */
+
+.admin-empty {
+  max-width: 900px;
+  margin: 0 auto;
+  background: #020617;
+  border: 1px solid #1e293b;
+  padding: 32px;
+  border-radius: 1rem;
+  text-align: center;
+  color: #64748b;
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.6);
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 640px) {
+  .vendor-actions {
+    flex-direction: column;
+  }
+
+  .btn-approve,
+  .btn-reject {
+    width: 100%;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+}

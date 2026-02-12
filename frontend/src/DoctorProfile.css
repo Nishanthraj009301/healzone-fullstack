@@ -1,0 +1,354 @@
+/* =========================================================
+   DOCTOR PROFILE — FINAL, CLEAN, SINGLE FLOATING CARD
+========================================================= */
+
+.doctor-profile-page {
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --success: #22c55e;
+
+  min-height: 100vh;
+  background: radial-gradient(
+      circle at top,
+      rgba(59, 130, 246, 0.15),
+      transparent 45%
+    ),
+    #020617;
+
+  color: #e5e7eb;
+  isolation: isolate;
+}
+
+/* =========================================================
+   HEADER — LOGO ONLY
+========================================================= */
+
+.doctor-profile-page .header {
+  background: transparent;
+  padding: 20px 0 10px;
+}
+
+.doctor-profile-page .header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 8px;
+  padding-right: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.logo-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.header-logo {
+  height: 80px;
+  display: block;
+}
+
+/* =========================================================
+   PAGE LAYOUT
+========================================================= */
+
+.profile-layout {
+  max-width: 1200px;
+  margin: 20px auto 60px;
+  padding: 0 24px;
+}
+
+/* =========================================================
+   SINGLE FLOATING CARD
+========================================================= */
+
+.profile-card {
+  background: #ffffff;
+  color: #020617;
+  border-radius: 24px;
+  box-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+  padding: 40px;
+
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 40px;
+}
+
+/* =========================================================
+   LEFT — DOCTOR INFO
+========================================================= */
+
+.profile-info {
+  overflow: hidden;
+}
+
+/* HERO */
+
+.profile-hero {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 36px;
+}
+
+/* 🔥 BIGGER DOCTOR IMAGE */
+.profile-hero img {
+  width: 200px;
+  height: 240px;
+  border-radius: 22px;
+  object-fit: cover;
+  background: #e5e7eb;
+}
+
+.hero-text h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.hero-text p {
+  margin: 6px 0;
+  font-size: 15px;
+  color: #475569;
+}
+
+.hero-text .fee {
+  font-size: 16px;
+  font-weight: 800;
+  color: #2563eb;
+  margin-top: 8px;
+}
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+.profile-section {
+  margin-bottom: 32px;
+}
+
+.profile-section h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.profile-section p {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #0f172a;
+}
+
+/* About Doctor — justified text only */
+.about-doctor p {
+  text-align: justify;
+}
+
+/* Clinic Map */
+
+.profile-section iframe {
+  width: 100%;
+  height: 240px;
+  border-radius: 16px;
+  border: none;
+  margin-top: 14px;
+}
+
+/* =========================================================
+   RIGHT — BOOKING PANEL
+========================================================= */
+
+.profile-booking {
+  position: sticky;
+  top: 32px;
+  height: fit-content;
+}
+
+/* BOOKING CARD */
+
+.booking-sticky {
+  background: #f8fafc;
+  border-radius: 22px;
+  padding: 28px;
+  border: 1px solid #e5e7eb;
+}
+
+.booking-sticky h3 {
+  margin-top: 0;
+  margin-bottom: 18px;
+  font-size: 18px;
+}
+
+/* DAY SELECTOR */
+
+.day-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.day {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.day.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+/* TIME SLOTS */
+
+.booking-slots {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.slot {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.slot.active {
+  background: #dcfce7;
+  border-color: var(--success);
+  color: #065f46;
+}
+
+/* CTA */
+
+.cta {
+  width: 100%;
+  height: 50px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(
+    90deg,
+    var(--primary),
+    var(--primary-dark)
+  );
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cta:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card {
+  background: #ffffff;
+  color: #020617;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  animation: pop 0.25s ease-out;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-card h3 {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.modal-card input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid #cbd5f5;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+
+.modal-card button {
+  width: 100%;
+  height: 46px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-card button:first-of-type {
+  background: linear-gradient(
+    90deg,
+    var(--primary),
+    var(--primary-dark)
+  );
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.modal-card button:last-of-type {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 900px) {
+  .profile-card {
+    grid-template-columns: 1fr;
+    padding: 26px;
+  }
+
+  .profile-hero {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-hero img {
+    width: 180px;
+    height: 220px;
+  }
+
+  .profile-booking {
+    position: relative;
+    top: auto;
+  }
+}

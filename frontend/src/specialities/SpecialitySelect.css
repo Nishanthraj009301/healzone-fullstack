@@ -1,0 +1,117 @@
+/* ================= PAGE ================= */
+
+.speciality-page {
+  min-height: 100vh;
+  background: #020617;
+  color: #ffffff;
+  padding: 0 24px 60px;
+}
+
+/* ================= HEADER ================= */
+
+.speciality-header {
+  height: 90px;
+  padding: 0 24px 0 12px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.speciality-page-logo {
+  height: 80px;
+  width: auto;
+  margin-top: 5px;
+  margin-left: -10px;
+}
+
+/* ================= TITLE ================= */
+
+.speciality-page h2 {
+  font-size: 28px;
+  margin: 20px 0 40px;
+  text-align: center;
+}
+
+/* ================= GRID ================= */
+
+.speciality-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
+  max-width: 900px;
+  margin: auto;
+}
+
+/* ================= CARD ================= */
+
+.speciality-card {
+  position: relative;
+  height: 260px;
+  border-radius: 22px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+
+  padding: 22px;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  overflow: hidden;
+  color: #ffffff;
+
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.speciality-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45);
+}
+
+/* ================= BOTTOM GRADIENT (KEY PART) ================= */
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.55) 35%,
+    rgba(0, 0, 0, 0.2) 65%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  z-index: 0;
+}
+
+/* ================= CONTENT ================= */
+
+.card-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+/* Title */
+.card-content h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+/* Subtitle (optional) */
+.card-content p {
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ================= ICON (IF USED) ================= */
+
+.icon {
+  font-size: 42px;
+  margin-bottom: 14px;
+}

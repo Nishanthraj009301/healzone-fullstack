@@ -1,0 +1,403 @@
+/* ================= RESET ================= */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #020617;
+}
+
+/* ================= ROOT ================= */
+
+.hz-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(
+    180deg,
+    #020617 0%,
+    #020617 40%,
+    #040b1f 100%
+  );
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ================= HEADER ================= */
+
+.hz-header {
+  width: 100%;
+  position: relative;
+  z-index: 20;
+}
+
+.hz-header-inner {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.2rem 2rem;
+  display: grid;
+  grid-template-columns: 220px 1fr auto;
+  align-items: center;
+}
+
+/* LEFT */
+.hz-header-left {
+  display: flex;
+  align-items: center;
+  margin-left: -1.5rem;
+}
+
+/* LOGO */
+.hz-logo {
+  max-width: 220px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.hz-logo img {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* RIGHT */
+.hz-header-right {
+  display: flex;
+  justify-content: flex-end;
+  align-self: flex-start;
+  padding-top: 4px;
+}
+
+/* NAV */
+.hz-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.hz-header button {
+  background: none;
+  border: none;
+  color: #cbd5f5;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.hz-header button:hover {
+  color: #ffffff;
+}
+
+.hz-header .login {
+  padding: 0.55rem 1.5rem;
+  border-radius: 999px;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+}
+
+/* ================= REGISTER DROPDOWN ================= */
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 0.75rem;
+  padding: 0.4rem;
+  min-width: 180px;
+  z-index: 50;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+.dropdown-menu button {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.5rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #cbd5f5;
+}
+
+.dropdown-menu button:hover {
+  background: #1e293b;
+  color: white;
+}
+
+/* ================= HERO ================= */
+
+.hz-hero {
+  max-width: 52rem;
+  margin: -1.8rem auto 0.6rem;
+  text-align: center;
+  padding: 0 1.5rem;
+}
+
+.hz-hero h1 {
+  font-size: 2.2rem;
+  line-height: 1.12;
+  margin-bottom: 0.9rem;
+}
+
+.hz-hero h1 span {
+  color: #38bdf8;
+}
+
+.hz-hero p {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin-bottom: 1.4rem;
+}
+
+.cta {
+  padding: 0.7rem 2rem;
+  border-radius: 999px;
+  border: none;
+  background: #38bdf8;
+  font-weight: 700;
+  cursor: pointer;
+  color: #020617;
+}
+
+.hz-hero small {
+  display: block;
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* ================= SERVICES ================= */
+
+.hz-services {
+  max-width: 80rem;
+  margin: 0 auto 1.8rem;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.2rem;
+}
+
+/* ================= CARD ================= */
+
+.card {
+  position: relative;
+  overflow: hidden;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 1rem;
+  padding: 1.4rem 1.2rem;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Background image */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.7;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.45s ease;
+  z-index: 0;
+  filter: contrast(1.1) saturate(1.08);
+}
+
+/* Dark overlay */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.35);
+  z-index: 0;
+}
+
+/* Content above image */
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* CLICKABLE */
+.card.clickable {
+  cursor: pointer;
+}
+
+.card.clickable:hover {
+  transform: translateY(-0.35rem);
+  border-color: #38bdf8;
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.6);
+}
+
+.card.clickable:hover::before {
+  opacity: 0.35;
+  transform: scale(1.08);
+}
+
+/* Disable button clicks */
+.card.clickable button {
+  pointer-events: none;
+}
+
+.card svg {
+  margin-bottom: 0.7rem;
+}
+
+.card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.card p {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 0.9rem;
+  line-height: 1.4;
+}
+
+.card button {
+  margin-top: auto;
+  padding: 0.45rem 1.3rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ================= CARD IMAGES ================= */
+
+.card.blue::before {
+  background-image: url("../public/images/cards/doctor.jpg");
+}
+
+.card.purple::before {
+  background-image: url("../public/images/cards/mental.jpg");
+}
+
+.card.gold::before {
+  background-image: url("../public/images/cards/fitness.jpg");
+}
+
+.card.green::before {
+  background-image: url("../public/images/cards/spa.jpg");
+}
+
+.card.pink::before {
+  background-image: url("../public/images/cards/beauty.jpg");
+}
+
+/* ================= BUTTON COLORS ================= */
+
+.blue button {
+  background: #38bdf8;
+  color: #020617;
+}
+
+.purple button {
+  background: #c084fc;
+  color: #1e1b4b;
+}
+
+.gold button {
+  background: #facc15;
+  color: #1c1917;
+}
+
+.green button {
+  background: #22c55e;
+  color: #022c22;
+}
+
+.pink button {
+  background: #fb7185;
+  color: #1f2933;
+}
+
+/* ================= LOGIN MODAL ================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.75);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 1rem;
+  padding: 1.8rem;
+  width: 320px;
+  position: relative;
+}
+
+.modal h2 {
+  margin-bottom: 1rem;
+}
+
+.modal input {
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 0.7rem;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 0.5rem;
+  color: white;
+}
+
+.modal button {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 999px;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  border: none;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  cursor: pointer;
+  color: #94a3b8;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 70rem) {
+  .hz-services {
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  }
+}
+
+@media (max-width: 48rem) {
+  .hz-hero h1 {
+    font-size: 2rem;
+  }
+
+  .hz-header-inner {
+    padding: 1rem 1.4rem;
+    grid-template-columns: 180px 1fr auto;
+  }
+
+  .hz-logo img {
+    height: 48px;
+  }
+}
