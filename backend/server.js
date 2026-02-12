@@ -129,7 +129,8 @@ app.get("/api/doctors/:id", async (req, res) => {
     const consultationHours = normalizeConsultationHours(row._doc);
 
     const doctor = {
-      id: row._id.toString(),
+      _id: row._id.toString(),
+
       name: row.name,
 
       // shown under name

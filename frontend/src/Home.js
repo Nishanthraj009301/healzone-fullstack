@@ -87,7 +87,7 @@ export default function Home() {
                     <button
                       onClick={() => navigateWithLoader("/admin/vendors")}
                     >
-                      Admin Signup
+                      Admin SignIn
                     </button>
                     <button
                       onClick={() =>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./DoctorProfile.css";
-import Loader from "./loader/Loader"; // adjust path if needed
+import Loader from "./loader/Loader";
 
 export default function DoctorProfile() {
   const { id } = useParams();
@@ -9,8 +9,6 @@ export default function DoctorProfile() {
 
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  /* ================= FETCH DOCTOR ================= */
 
   useEffect(() => {
     let mounted = true;
@@ -32,9 +30,8 @@ export default function DoctorProfile() {
     return () => (mounted = false);
   }, [id]);
 
-  /* ================= LOADER STATES ================= */
-
   if (loading) return <Loader />;
+
   if (!doctor)
     return (
       <div className="doctor-profile-page">
@@ -44,7 +41,6 @@ export default function DoctorProfile() {
 
   return (
     <div className="doctor-profile-page">
-      {/* ================= HEADER ================= */}
       <header className="header">
         <div className="header-inner">
           <button className="logo-button" onClick={() => navigate("/")}>
@@ -57,7 +53,6 @@ export default function DoctorProfile() {
         </div>
       </header>
 
-      {/* ================= CONTENT ================= */}
       <main className="profile-layout">
         <div className="profile-card">
           <section className="profile-info">
@@ -66,13 +61,11 @@ export default function DoctorProfile() {
             <About doctor={doctor} />
           </section>
 
-
           <section className="profile-booking">
             <Appointment doctor={doctor} />
           </section>
         </div>
       </main>
-
     </div>
   );
 }
@@ -98,13 +91,11 @@ function Hero({ doctor }) {
 }
 
 function Clinic({ doctor }) {
-  const hasLocation =
-    doctor.latitude && doctor.longitude;
+  const hasLocation = doctor.latitude && doctor.longitude;
 
   return (
     <div className="profile-section">
       <h3>Clinic</h3>
-
       <p>{doctor.address1}</p>
       <p>{doctor.city}</p>
 
@@ -131,20 +122,6 @@ function About({ doctor }) {
   );
 }
 
-
-/* ================= SLOT HELPERS ================= */
-
-function extractSlotsForDay(hours, day) {
-  const slots = [];
-  hours.forEach(h => {
-    if (h.day === day) {
-      if (h.from) slots.push(h.from.slice(0, 5));
-      if (h.to) slots.push(h.to.slice(0, 5));
-    }
-  });
-  return slots;
-}
-
 /* ================= RIGHT ================= */
 
 function Appointment({ doctor }) {
@@ -154,23 +131,26 @@ function Appointment({ doctor }) {
   const [bookingSuccess, setBookingSuccess] = useState(null);
 
   const hours = (doctor.consultation_hours || []).filter(
-    h => h.from || h.to
+    (h) => h.from || h.to
   );
 
   if (hours.length === 0) {
     return <div className="booking-sticky">No consultation hours</div>;
   }
 
-  const days = [...new Set(hours.map(h => h.day))];
+  const days = [...new Set(hours.map((h) => h.day))];
   const selectedDay = days[dayIndex];
-  const slots = extractSlotsForDay(hours, selectedDay);
+  const slots = hours
+    .filter((h) => h.day === selectedDay)
+    .flatMap((h) => [h.from?.slice(0, 5), h.to?.slice(0, 5)])
+    .filter(Boolean);
+
   const fee = doctor.Rokka || 0;
 
   return (
     <div className="booking-sticky">
       <h3>Book Appointment</h3>
 
-      {/* DAY SELECTOR */}
       <div className="day-selector">
         {days.map((d, i) => (
           <button
@@ -186,7 +166,6 @@ function Appointment({ doctor }) {
         ))}
       </div>
 
-      {/* SLOTS */}
       <div className="booking-slots">
         {slots.map((time, idx) => (
           <button
@@ -207,14 +186,13 @@ function Appointment({ doctor }) {
         Confirm Booking
       </button>
 
-      {/* MODALS */}
       <BookingModal
         open={showModal}
         doctor={doctor}
         date={selectedDay}
         time={slots[selectedIndex]}
         fee={fee}
-        onClose={booking => {
+        onClose={(booking) => {
           setShowModal(false);
           if (booking) setBookingSuccess(booking);
         }}
@@ -247,27 +225,34 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
       return;
     }
 
+    if (!doctor?._id) {
+      alert("Doctor ID missing. Please refresh page.");
+      return;
+    }
+
     if (submitting) return;
     setSubmitting(true);
 
-    // ✅ FIXED PAYLOAD
-    const payload = {
-      doctorId: doctor._id,
-      vendorId: doctor.vendorId || null,
+    if (!doctor?._id) {
+      alert("Doctor ID missing. Please refresh page.");
+      return;
+    }
 
-      // 🔥 IMPORTANT FIX: real date instead of weekday
-      bookingDate: new Date().toISOString().slice(0, 10),
+
+    const payload = {
+      doctorId: doctor?._id || null,
+      vendorId: doctor?.vendorId || null,
+      bookingDate: new Date().toISOString().split("T")[0],
 
       bookingTime: time,
-
       fullName: form.fullName.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
-
-      consultationFee: fee,
+      consultationFee: Number(fee),
     };
 
     console.log("Booking payload:", payload);
+
 
     try {
       const res = await fetch(
@@ -302,21 +287,21 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
         <input
           placeholder="Full Name"
           value={form.fullName}
-          onChange={e =>
+          onChange={(e) =>
             setForm({ ...form, fullName: e.target.value })
           }
         />
         <input
           placeholder="Email"
           value={form.email}
-          onChange={e =>
+          onChange={(e) =>
             setForm({ ...form, email: e.target.value })
           }
         />
         <input
           placeholder="Phone"
           value={form.phone}
-          onChange={e =>
+          onChange={(e) =>
             setForm({ ...form, phone: e.target.value })
           }
         />
@@ -330,7 +315,6 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
   );
 }
 
-
 /* ================= SUCCESS MODAL ================= */
 
 function BookingSuccess({ booking, onClose }) {
@@ -340,18 +324,10 @@ function BookingSuccess({ booking, onClose }) {
     <div className="modal-backdrop">
       <div className="modal-card">
         <h3>Booking Confirmed 🎉</h3>
-        <p>
-          <b>Reference:</b> {booking.referenceNumber}
-        </p>
-        <p>
-          <b>Name:</b> {booking.fullName}
-        </p>
-        <p>
-          <b>Date:</b> {booking.bookingDate}
-        </p>
-        <p>
-          <b>Time:</b> {booking.bookingTime}
-        </p>
+        <p><b>Reference:</b> {booking.referenceNumber}</p>
+        <p><b>Name:</b> {booking.fullName}</p>
+        <p><b>Date:</b> {new Date(booking.bookingDate).toDateString()}</p>
+        <p><b>Time:</b> {booking.bookingTime}</p>
         <button onClick={onClose}>Close</button>
       </div>
     </div>
