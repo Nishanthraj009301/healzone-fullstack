@@ -22,8 +22,6 @@ export default function AdminVendors() {
         const res = await fetch("http://localhost:5000/api/admin/vendors");
         const data = await res.json();
 
-        console.log("ADMIN VENDORS FROM API 👉", data);
-
         if (!res.ok) {
           throw new Error(data.message || "Failed to fetch vendors");
         }
@@ -58,7 +56,6 @@ export default function AdminVendors() {
         throw new Error(data.message || "Update failed");
       }
 
-      // Remove vendor from list after decision
       setVendors((prev) => prev.filter((v) => v._id !== id));
     } catch (err) {
       console.error("UPDATE ERROR", err);
@@ -87,36 +84,69 @@ export default function AdminVendors() {
         <div className="admin-empty">No pending vendor requests</div>
       )}
 
-      {!loading &&
-        vendors.map((v) => (
-          <div key={v._id} className="vendor-card">
-            <h4>
-              {v.firstName} {v.lastName}
-            </h4>
+      {!loading && vendors.length > 0 && (
+        <div className="table-wrapper">
+          <table className="vendor-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>Category</th>
+                <th>Speciality</th>
+                <th>Fee</th>
+                <th>Duration</th>
+                <th>Location</th>
+                <th>Services</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-            <div className="vendor-meta">
-              <span>Email: {v.email}</span>
-              <span>Phone: {v.mobile}</span>
-              <span>Status: {v.status}</span>
-            </div>
+            <tbody>
+              {vendors.map((v) => (
+                <tr key={v._id}>
+                  <td>{v.firstName} {v.lastName}</td>
+                  <td>{v.email}</td>
+                  <td>{v.mobile}</td>
+                  <td>{v.category}</td>
+                  <td>{v.speciality}</td>
+                  <td>₹{v.consultationFee}</td>
+                  <td>{v.appointmentDuration} mins</td>
+                  <td>{v.state}, {v.country}</td>
+                  <td>
+                    {Array.isArray(v.services)
+                      ? v.services.join(", ")
+                      : v.services}
+                  </td>
+                  <td>
+                    <span className={`status-badge ${v.status.toLowerCase()}`}>
+                      {v.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="action-buttons">
+                      <button
+                        className="btn-approve"
+                        onClick={() => updateStatus(v._id, "APPROVED")}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        className="btn-reject"
+                        onClick={() => updateStatus(v._id, "REJECTED")}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
 
-            <div className="vendor-actions">
-              <button
-                className="btn-approve"
-                onClick={() => updateStatus(v._id, "APPROVED")}
-              >
-                Approve
-              </button>
-
-              <button
-                className="btn-reject"
-                onClick={() => updateStatus(v._id, "REJECTED")}
-              >
-                Reject
-              </button>
-            </div>
-          </div>
-        ))}
+          </table>
+        </div>
+      )}
     </div>
   );
 }

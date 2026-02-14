@@ -59,6 +59,7 @@ export default function DoctorProfile() {
             <Hero doctor={doctor} />
             <Clinic doctor={doctor} />
             <About doctor={doctor} />
+            <LocationMap doctor={doctor} />
           </section>
 
           <section className="profile-booking">
@@ -70,7 +71,7 @@ export default function DoctorProfile() {
   );
 }
 
-/* ================= LEFT ================= */
+/* ================= HERO ================= */
 
 function Hero({ doctor }) {
   return (
@@ -84,32 +85,27 @@ function Hero({ doctor }) {
         {doctor.speciality && (
           <p className="speciality">{doctor.speciality}</p>
         )}
-        {doctor.focus_area && <p className="focus">{doctor.focus_area}</p>}
+        {doctor.focus_area && (
+          <p className="focus">{doctor.focus_area}</p>
+        )}
       </div>
     </div>
   );
 }
 
-function Clinic({ doctor }) {
-  const hasLocation = doctor.latitude && doctor.longitude;
+/* ================= CLINIC (ADDRESS ONLY) ================= */
 
+function Clinic({ doctor }) {
   return (
     <div className="profile-section">
       <h3>Clinic</h3>
       <p>{doctor.address1}</p>
       <p>{doctor.city}</p>
-
-      {hasLocation && (
-        <iframe
-          title="Clinic Location"
-          src={`https://www.google.com/maps?q=${doctor.latitude},${doctor.longitude}&z=15&output=embed`}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        />
-      )}
     </div>
   );
 }
+
+/* ================= ABOUT ================= */
 
 function About({ doctor }) {
   return (
@@ -122,7 +118,27 @@ function About({ doctor }) {
   );
 }
 
-/* ================= RIGHT ================= */
+/* ================= LOCATION MAP ================= */
+
+function LocationMap({ doctor }) {
+  const hasLocation = doctor.latitude && doctor.longitude;
+
+  if (!hasLocation) return null;
+
+  return (
+    <div className="profile-section">
+      <h3>Location</h3>
+      <iframe
+        title="Clinic Location"
+        src={`https://www.google.com/maps?q=${doctor.latitude},${doctor.longitude}&z=15&output=embed`}
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
+    </div>
+  );
+}
+
+/* ================= RIGHT SIDE (UNCHANGED) ================= */
 
 function Appointment({ doctor }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
@@ -140,6 +156,7 @@ function Appointment({ doctor }) {
 
   const days = [...new Set(hours.map((h) => h.day))];
   const selectedDay = days[dayIndex];
+
   const slots = hours
     .filter((h) => h.day === selectedDay)
     .flatMap((h) => [h.from?.slice(0, 5), h.to?.slice(0, 5)])
@@ -205,6 +222,8 @@ function Appointment({ doctor }) {
     </div>
   );
 }
+
+/* BookingModal + BookingSuccess remain unchanged */
 
 /* ================= BOOKING MODAL ================= */
 

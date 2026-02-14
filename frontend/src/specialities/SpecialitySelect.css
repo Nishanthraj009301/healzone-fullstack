@@ -220,7 +220,7 @@
 
   border-radius: 18px;
 
-  background: rgba(0, 0, 0, 0.65);
+  background: rgb(0, 176, 240);
   backdrop-filter: blur(8px);
 
   display: flex;
@@ -247,4 +247,24 @@
 .speciality-card:hover .card-bottom {
   background: rgba(0, 0, 0, 0.45);
   transform: translateY(-3px);
+}
+
+/* ================= LOGO BUTTON ================= */
+
+.speciality-logo-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.speciality-logo-btn:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+.speciality-logo-btn:active {
+  transform: scale(0.97);
 }

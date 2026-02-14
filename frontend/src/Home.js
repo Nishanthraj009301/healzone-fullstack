@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 import "./Home.css";
 
 /* ================= ICONS ================= */
@@ -53,12 +54,31 @@ export default function Home() {
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [comingSoon, setComingSoon] = useState(null);
+  const [doctors, setDoctors] = useState([]);
 
   const navigateWithLoader = (path) => {
     setTimeout(() => {
       navigate(path);
     }, 300);
   };
+
+  /* ================= FETCH DOCTORS ================= */
+  useEffect(() => {
+    async function fetchDoctors() {
+      try {
+        const res = await fetch("http://localhost:5000/api/doctors");
+        const data = await res.json();
+
+        if (res.ok) {
+          setDoctors(data.slice(0, 8)); // show 8 doctors
+        }
+      } catch (err) {
+        console.error("Error fetching doctors:", err);
+      }
+    }
+
+    fetchDoctors();
+  }, []);
 
   return (
     <div className="hz-root">
@@ -178,6 +198,43 @@ export default function Home() {
           <button>Find a Salon</button>
         </div>
       </section>
+
+      {/* ================= DOCTORS SECTION ================= */}
+<section className="hz-recommended">
+  <h2>Recommendations</h2>
+
+  <div className="slider-wrapper">
+    <div className="slider-track">
+      {[...doctors, ...doctors].map((doc, index) => (
+        <div
+          key={`${doc.id}-${index}`}
+          className="doctor-simple-card"
+          onClick={() => navigate(`/doctor/${doc.id}`)}
+        >
+          <div className="doctor-image-wrapper">
+            <img
+              src={doc.profile_url}
+              alt={doc.name}
+              className="doctor-image"
+            />
+          </div>
+
+          <h4>{doc.name}</h4>
+
+          <p className="speciality">
+            {doc.speciality || doc.focus_area}
+          </p>
+
+          <p className="consultation">
+            ₹{doc.Rokka || "--"} Consultation
+          </p>
+
+          <button>View Profile</button>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* ================= COMING SOON MODAL ================= */}
       {comingSoon && (

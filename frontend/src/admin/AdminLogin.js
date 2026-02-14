@@ -3,78 +3,116 @@ import { useNavigate } from "react-router-dom";
 import "./AdminLogin.css";
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  async function login(e) {
-    e.preventDefault();
-    if (loading) return;
+  const [form, setForm] = useState({
+    username: "",
+    password: "",
+  });
 
-    setLoading(true);
+  const [loading, setLoading] = useState(false);
 
-    try {
-      const res = await fetch("http://localhost:5000/api/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-      const data = await res.json();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-      if (!res.ok) {
-        alert(data.message || "Invalid admin credentials");
-        return;
-      }
-
-      // 🔐 Simple admin auth (dev mode)
-      localStorage.setItem("isAdmin", "true");
-
-      navigate("/admin/vendors");
-    } catch (err) {
-      console.error(err);
-      alert("Server error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  if (!form.username || !form.password) {
+    alert("Please enter username and password");
+    return;
   }
+
+  setLoading(true);
+
+  try {
+    const res = await fetch("http://localhost:5000/api/admin/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(form),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Login failed");
+      return;
+    }
+
+    // Store admin flag - adjust field name based on your backend response
+    localStorage.setItem("isAdmin", "true");  // Or: data.isAdmin || data.role === "admin"
+    
+    // Optionally store token or user data if your backend provides it
+    // localStorage.setItem("adminToken", data.token);
+
+    // Redirect to admin dashboard/vendors page
+    navigate("/admin/vendors");
+
+  } catch (err) {
+    alert("Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="admin-login-page">
-      <form className="admin-login-card" onSubmit={login}>
-        <h2>Admin Login</h2>
-        <p className="admin-login-subtitle">
-          Restricted access — administrators only
-        </p>
+      <div className="admin-login-wrapper">
 
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          autoFocus
+        {/* ===== LOGO ===== */}
+        <img
+          src="/healonelogo.png"
+          alt="Healzone"
+          className="admin-login-logo"
+          onClick={() => navigate("/")}
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        {/* ===== CARD ===== */}
+        <div className="admin-login-card">
+          <h2>Admin Login</h2>
+          <p className="admin-login-subtitle">
+            Enter your credentials to continue
+          </p>
 
-        <button
-          type="submit"
-          className="admin-login-btn"
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
+          <form onSubmit={handleSubmit}>
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={form.username}
+              onChange={handleChange}
+            />
 
-        <div className="admin-login-note">
-          Healzone Admin Panel
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+            />
+
+            <button
+              type="submit"
+              className="admin-login-btn"
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "Login"}
+            </button>
+          </form>
+
+          <div className="admin-login-note">
+            Healzone Admin Panel
+          </div>
         </div>
-      </form>
+
+      </div>
     </div>
   );
 }
