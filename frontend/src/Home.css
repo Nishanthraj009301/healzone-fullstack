@@ -7,7 +7,6 @@
 body {
   margin: 0;
   background: #020617;
-  overflow-x: hidden;
 }
 
 /* ================= ROOT ================= */
@@ -43,12 +42,14 @@ body {
   align-items: center;
 }
 
+/* LEFT */
 .hz-header-left {
   display: flex;
   align-items: center;
   margin-left: -1.5rem;
 }
 
+/* LOGO */
 .hz-logo {
   max-width: 220px;
   display: flex;
@@ -62,6 +63,7 @@ body {
   object-fit: contain;
 }
 
+/* RIGHT */
 .hz-header-right {
   display: flex;
   justify-content: flex-end;
@@ -69,6 +71,7 @@ body {
   padding-top: 4px;
 }
 
+/* NAV */
 .hz-nav {
   display: flex;
   align-items: center;
@@ -96,7 +99,7 @@ body {
   font-weight: 600;
 }
 
-/* ================= DROPDOWN ================= */
+/* ================= REGISTER DROPDOWN ================= */
 
 .dropdown {
   position: relative;
@@ -191,82 +194,45 @@ body {
   border: 1px solid #1e293b;
   border-radius: 1rem;
   padding: 1.4rem 1.2rem;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* FIXED IMAGE PATHS */
-.card.blue::before {
+/* Background image */
+.card::before {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: url("/images/cards/doctor.jpg");
   background-size: cover;
   background-position: center;
-  opacity: 0.65;
+  opacity: 0.7;
+  transform: scale(1);
+  transition: opacity 0.35s ease, transform 0.45s ease;
   z-index: 0;
+  filter: contrast(1.1) saturate(1.08);
 }
 
-.card.purple::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("/images/cards/mental.jpg");
-  background-size: cover;
-  background-position: center;
-  opacity: 0.65;
-  z-index: 0;
-}
-
-.card.gold::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("/images/cards/fitness.jpg");
-  background-size: cover;
-  background-position: center;
-  opacity: 0.65;
-  z-index: 0;
-}
-
-.card.green::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("/images/cards/spa.jpg");
-  background-size: cover;
-  background-position: center;
-  opacity: 0.65;
-  z-index: 0;
-}
-
-.card.pink::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: url("/images/cards/beauty.jpg");
-  background-size: cover;
-  background-position: center;
-  opacity: 0.65;
-  z-index: 0;
-}
-
+/* Dark overlay */
 .card::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(2, 6, 23, 0.45);
+  background: rgba(2, 6, 23, 0.35);
   z-index: 0;
 }
 
+/* Content above image */
 .card > * {
   position: relative;
   z-index: 1;
 }
 
+/* CLICKABLE */
 .card.clickable {
   cursor: pointer;
 }
@@ -277,17 +243,190 @@ body {
   box-shadow: 0 10px 28px rgba(2, 6, 23, 0.6);
 }
 
-/* ================= DOCTORS ================= */
+.card.clickable:hover::before {
+  opacity: 0.35;
+  transform: scale(1.08);
+}
+
+/* Disable button clicks */
+.card.clickable button {
+  pointer-events: none;
+}
+
+.card svg {
+  margin-bottom: 0.7rem;
+}
+
+.card h3 {
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.card p {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 0.9rem;
+  line-height: 1.4;
+}
+
+.card button {
+  margin-top: auto;
+  padding: 0.45rem 1.3rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ================= CARD IMAGES ================= */
+
+.card.blue::before {
+  background-image: url("../public/images/cards/doctor.jpg");
+}
+
+.card.purple::before {
+  background-image: url("../public/images/cards/mental.jpg");
+}
+
+.card.gold::before {
+  background-image: url("../public/images/cards/fitness.jpg");
+}
+
+.card.green::before {
+  background-image: url("../public/images/cards/spa.jpg");
+}
+
+.card.pink::before {
+  background-image: url("../public/images/cards/beauty.jpg");
+}
+
+/* ================= BUTTON COLORS ================= */
+
+.blue button {
+  background: #38bdf8;
+  color: #020617;
+}
+
+.purple button {
+  background: #c084fc;
+  color: #1e1b4b;
+}
+
+.gold button {
+  background: #facc15;
+  color: #1c1917;
+}
+
+.green button {
+  background: #22c55e;
+  color: #022c22;
+}
+
+.pink button {
+  background: #fb7185;
+  color: #1f2933;
+}
+
+/* ================= LOGIN MODAL ================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.75);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 1rem;
+  padding: 1.8rem;
+  width: 320px;
+  position: relative;
+}
+
+.modal h2 {
+  margin-bottom: 1rem;
+}
+
+.modal input {
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 0.7rem;
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 0.5rem;
+  color: white;
+}
+
+.modal button {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 999px;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  border: none;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  cursor: pointer;
+  color: #94a3b8;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 70rem) {
+  .hz-services {
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  }
+}
+
+@media (max-width: 48rem) {
+  .hz-hero h1 {
+    font-size: 2rem;
+  }
+
+  .hz-header-inner {
+    padding: 1rem 1.4rem;
+    grid-template-columns: 180px 1fr auto;
+  }
+
+  .hz-logo img {
+    height: 48px;
+  }
+}
+
+/* ================= DOCTORS SECTION ================= */
 
 .hz-recommended {
   max-width: 80rem;
-  margin: 0 auto;
+  margin: 0px auto;
   padding: 0 2rem;
+  position: relative;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
+
+.hz-recommended h2 {
+  text-align: center;
+  font-size: 1.9rem;
+  margin-bottom: 50px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: #e5e7eb;
+}
+
+/* ================= HORIZONTAL SLIDER ================= */
 
 .slider-wrapper {
   width: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 .slider-track {
@@ -297,21 +436,44 @@ body {
   animation: slideDoctors 30s linear infinite;
 }
 
-@keyframes slideDoctors {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+.slider-wrapper:hover .slider-track {
+  animation-play-state: paused;
 }
+
+.slider-track > * {
+  flex: 0 0 auto;
+}
+
+/* ================= ANIMATION ================= */
+
+@keyframes slideDoctors {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ================= DOCTOR CARD ================= */
 
 .doctor-simple-card {
   width: 260px;
   background: #e5e7eb;
   border-radius: 1.5rem;
-  padding: 1.6rem 1.2rem;
+  padding: 2rem 1.5rem;
   text-align: center;
   cursor: pointer;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
+}
+
+.doctor-simple-card:hover {
+  transform: translateY(-0.35rem);
+  border-color: #38bdf8;
 }
 
 .doctor-image-wrapper {
@@ -321,93 +483,41 @@ body {
   border-radius: 50%;
   overflow: hidden;
 }
-
 .doctor-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* ================= MODAL FIX ================= */
-
-.modal {
-  background: #020617;
-  border: 1px solid #1e293b;
-  border-radius: 1rem;
-  padding: 1.2rem;
-  width: 92%;
-  max-width: 360px;
-  position: relative;
+.doctor-simple-card h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #0f172a;
+  letter-spacing: -0.2px;
 }
 
-/* ================= MOBILE IMPROVEMENTS ================= */
-
-@media (max-width: 768px) {
-
-  .hz-header-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 1rem;
-  }
-
-  .hz-logo img {
-    height: 50px;
-  }
-
-  .hz-hero h1 {
-    font-size: 1.7rem;
-  }
-
-  .hz-hero p {
-    font-size: 0.85rem;
-  }
-
-  .cta {
-    width: 100%;
-    max-width: 260px;
-  }
-
-  .hz-services {
-    grid-template-columns: 1fr;
-    padding: 0 1.2rem;
-  }
-
-  .slider-wrapper {
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-  }
-
-  .slider-track {
-    animation: none;
-    width: auto;
-  }
-
-  .doctor-simple-card {
-    width: 220px;
-    scroll-snap-align: start;
-  }
+.speciality {
+  min-height: 48px;   /* 👈 force same height for speciality section */
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 10px;
+  font-weight: 500;
 }
 
-@media (max-width: 480px) {
+.consultation {
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 1.4rem;
+}
 
-  .modal {
-    padding: 1rem;
-    border-radius: 0.8rem;
-  }
-
-  .modal h2 {
-    font-size: 1.2rem;
-  }
-
-  .modal input {
-    padding: 0.5rem;
-    font-size: 0.9rem;
-  }
-
-  .modal button {
-    padding: 0.55rem;
-    font-size: 0.9rem;
-  }
+.doctor-simple-card button {
+  margin-top: auto;
+  padding: 0.45rem 1.3rem;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #38bdf8;
+  color: #020617;
 }
