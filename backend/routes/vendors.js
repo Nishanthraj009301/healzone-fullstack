@@ -5,19 +5,18 @@ const sendEmail = require("../utils/sendEmail");
 
 const router = express.Router();
 
-
-
 /* =========================================================
-   REGISTER VENDOR (DEFAULT STATUS = PENDING)
+   REGISTER (VENDOR + DOCTOR) - DEFAULT STATUS = PENDING
 ========================================================= */
 router.post("/register", async (req, res) => {
   try {
     const data = req.body;
 
-    // Prevent doctors from using vendor signup
-    if (data.category === "Doctor") {
+    /* ================= VALIDATION ================= */
+
+    if (!data.category) {
       return res.status(400).json({
-        message: "Doctors must register via doctor signup"
+        message: "Category is required"
       });
     }
 
@@ -29,15 +28,18 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    // 🔥 HASH PASSWORD (NO next(), NO callbacks)
+    /* ================= HASH PASSWORD ================= */
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    /* ================= CREATE RECORD ================= */
 
     const vendor = new Vendor({
       firstName: data.firstName,
       lastName: data.lastName,
       name: `${data.firstName} ${data.lastName}`,
 
-      category: data.category,
+      category: data.category, // Supports Doctor now
       speciality: data.speciality,
 
       mobile: data.mobile,
@@ -52,58 +54,82 @@ router.post("/register", async (req, res) => {
       appointmentDuration: data.appointmentDuration,
       services: data.services,
 
-      status: "PENDING",      // 🔥 ADMIN APPROVAL
+      status: "PENDING",
       isActive: true
     });
 
     await vendor.save();
 
-    // 📧 Send registration confirmation email
-    await vendor.save();
+    /* ================= SEND EMAIL ================= */
 
-    // 📧 Send registration confirmation email
-    try {
-      await sendEmail({
-        to: vendor.email,
-        subject: "HealZone Vendor Registration Successful 🎉",
-        html: `
-      <div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2 style="color:#2563eb;">Welcome to HealZone, ${vendor.firstName} 👋</h2>
+/* ================= SEND EMAIL ================= */
+
+try {
+  await sendEmail({
+    to: vendor.email,
+    subject: `HealZone Registration Received – Pending Approval`,
+    html: `
+      <div style="font-family: Arial, Helvetica, sans-serif; background-color:#f4f6f8; padding:30px;">
         
-        <p>Your vendor registration has been successfully received and has been sent for verification.</p>
+        <div style="max-width:600px; margin:0 auto; background:#ffffff; padding:30px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+          
+          <h2 style="color:#2563eb; margin-bottom:10px;">
+            Welcome to HealZone, ${vendor.firstName}
+          </h2>
 
-        <div style="background:#f3f4f6; padding:15px; border-radius:8px;">
-          <p><strong>Status:</strong> Awaiting approval</p>
-          <p><strong>Category:</strong> ${vendor.category}</p>
-          <p><strong>Registered On:</strong> ${new Date().toLocaleDateString()}</p>
+          <p style="color:#333; font-size:14px; line-height:1.6;">
+            Thank you for registering as a <strong>${vendor.category}</strong> on HealZone.
+            We have successfully received your registration details.
+          </p>
+
+          <p style="color:#333; font-size:14px; line-height:1.6;">
+            Your profile is currently under review by our team. 
+            // Once verified and approved, you will be notified via email.
+          </p>
+
+          <div style="background:#f3f4f6; padding:15px 20px; border-radius:6px; margin:20px 0;">
+            <p style="margin:6px 0; font-size:14px;"><strong>Status:</strong> Pending Approval</p>
+            <p style="margin:6px 0; font-size:14px;"><strong>Category:</strong> ${vendor.category}</p>
+            <p style="margin:6px 0; font-size:14px;"><strong>Registration Date:</strong> ${new Date().toLocaleDateString()}</p>
+          </div>
+
+          <p style="color:#333; font-size:14px; line-height:1.6;">
+            If you have any questions or need assistance, feel free to contact our support team.
+          </p>
+
+          <hr style="margin:25px 0; border:none; border-top:1px solid #e5e7eb;" />
+
+          <p style="font-size:13px; color:#777;">
+            Regards,<br/>
+            <strong>HealZone Team</strong><br/>
+            <span style="color:#2563eb;">Connecting You to Better Care</span>
+          </p>
+
         </div>
 
-        <p>We will notify you once your profile is reviewed and approved.</p>
-
-        <br/>
-        <p>Regards,<br/><strong>HealZone Team</strong></p>
       </div>
     `
-      });
-    } catch (emailError) {
-      console.error("Vendor email failed:", emailError.message);
-    }
+  });
+} catch (emailError) {
+  console.error("Registration email failed:", emailError.message);
+}
 
     return res.status(201).json({
-      message: "Vendor registered successfully. Awaiting admin approval."
+      message: `${vendor.category} registered successfully. Awaiting admin approval.`
     });
+
   } catch (err) {
-    console.error("VENDOR REGISTER ERROR:", err);
+    console.error("REGISTER ERROR:", err);
 
     return res.status(400).json({
-      message: "Vendor registration failed",
+      message: "Registration failed",
       error: err.message
     });
   }
 });
 
 /* =========================================================
-   GET APPROVED VENDORS (FOR FRONTEND SEARCH)
+   GET APPROVED VENDORS
 ========================================================= */
 router.get("/approved", async (req, res) => {
   try {
@@ -121,7 +147,26 @@ router.get("/approved", async (req, res) => {
 });
 
 /* =========================================================
-   GET ALL VENDORS (ADMIN / INTERNAL)
+   GET APPROVED DOCTORS ONLY
+========================================================= */
+router.get("/doctors", async (req, res) => {
+  try {
+    const doctors = await Vendor.find({
+      category: "Doctor",
+      status: "APPROVED",
+      isActive: true
+    }).select("-password");
+
+    res.json(doctors);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch doctors"
+    });
+  }
+});
+
+/* =========================================================
+   GET ALL VENDORS (ADMIN)
 ========================================================= */
 router.get("/", async (req, res) => {
   try {

@@ -23,6 +23,7 @@ const vendorSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
+        "Doctor",
         "Mental Health",
         "Physical Health",
         "Spa & Retreats Center",

@@ -9,7 +9,7 @@ export default function Register() {
 
   useEffect(() => {
     const r = searchParams.get("role");
-    if (r) setRole(r);
+    if (r) setRole(r.toLowerCase());
   }, [searchParams]);
 
   if (!role) return null;
@@ -26,11 +26,13 @@ export default function Register() {
       </div>
 
       {/* TITLE */}
-      <h2 className="register-title">Register to Heal-Zone</h2>
+      <h2 className="register-title">
+        {role === "doctor" ? "Doctor Registration" : "Vendor Registration"}
+      </h2>
 
       {/* CONTENT */}
       <div className="register-content">
-        {role === "vendor" && <VendorRegistrationForm />}
+        <VendorRegistrationForm role={role} />
       </div>
     </div>
   );

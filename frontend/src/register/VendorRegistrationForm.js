@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import "./VendorRegistrationForm.css";
 
-export default function VendorRegistrationForm() {
+export default function VendorRegistrationForm({ role }) {
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -19,6 +19,15 @@ export default function VendorRegistrationForm() {
     appointmentDuration: "",
     services: "",
   });
+
+  /* ===============================
+     AUTO SET CATEGORY IF DOCTOR
+  =============================== */
+  useEffect(() => {
+    if (role === "doctor") {
+      setFormData(prev => ({ ...prev, category: "Doctor" }));
+    }
+  }, [role]);
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -45,7 +54,7 @@ export default function VendorRegistrationForm() {
     ];
 
     for (let field of requiredFields) {
-      if (!formData[field] || formData[field].trim() === "") {
+      if (!formData[field] || formData[field].toString().trim() === "") {
         return false;
       }
     }
@@ -64,76 +73,79 @@ export default function VendorRegistrationForm() {
      SUBMIT → SAVE TO DB
   =============================== */
   const submit = async e => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!isFormValid || loading) return;
+    if (!isFormValid || loading) return;
 
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    // 🔥 FIX: convert numeric fields
-    const payload = {
-  firstName: formData.firstName,
-  lastName: formData.lastName,
-  mobile: formData.mobile,
-  category: formData.category,
+    try {
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        mobile: formData.mobile,
+        category: formData.category,
+        email: formData.email,
+        password: formData.password,
+        speciality: formData.speciality,
+        address: formData.address,
+        state: formData.state,
+        country: formData.country,
+        consultationFee: Number(formData.consultationFee),
+        appointmentDuration: Number(formData.appointmentDuration),
+        services: formData.services,
+      };
 
-  email: formData.email,
-  password: formData.password,
-  speciality: formData.speciality,
-  address: formData.address,
-  state: formData.state,
-  country: formData.country,
-  consultationFee: Number(formData.consultationFee),
-  appointmentDuration: Number(formData.appointmentDuration),
-  services: formData.services,
-};
+      const res = await fetch("http://localhost:5000/api/vendors/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
+      const data = await res.json();
 
-    const res = await fetch("http://localhost:5000/api/vendors/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+      if (!res.ok) {
+        alert(data.message || data.error || "Registration failed");
+        return;
+      }
 
-    const data = await res.json();
+      alert(
+        role === "doctor"
+          ? "Doctor registered successfully! Await admin approval."
+          : "Vendor registered successfully! Await admin approval."
+      );
 
-    if (!res.ok) {
-      alert(data.message || data.error || "Vendor registration failed");
-      return;
+      setFormData({
+        firstName: "",
+        lastName: "",
+        category: role === "doctor" ? "Doctor" : "",
+        speciality: "",
+        mobile: "",
+        email: "",
+        password: "",
+        address: "",
+        state: "",
+        country: "",
+        consultationFee: "",
+        appointmentDuration: "",
+        services: "",
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Server error. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    alert("Vendor registered successfully! Await admin approval.");
-    console.log("Saved vendor:", data);
-
-    // Reset form
-    setFormData({
-      firstName: "",
-      lastName: "",
-      category: "",
-      speciality: "",
-      mobile: "",
-      email: "",
-      password: "",
-      address: "",
-      state: "",
-      country: "",
-      consultationFee: "",
-      appointmentDuration: "",
-      services: "",
-    });
-  } catch (err) {
-    console.error(err);
-    alert("Server error. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <div className="vendor-form-wrapper">
-      <h2 className="vendor-title">Vendor Registration</h2>
+      <h2 className="vendor-title">
+        {role === "doctor"
+          ? "Doctor Registration"
+          : "Vendor Registration"}
+      </h2>
+
       <p className="vendor-subtitle">
         Register your practice and start accepting appointments
       </p>
@@ -158,18 +170,21 @@ export default function VendorRegistrationForm() {
             />
           </div>
 
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-          >
-            <option value="">Select Category</option>
-            <option>Doctor</option>
-            <option>Mental Health</option>
-            <option>Physical Health</option>
-            <option>Spa & Retreats Center</option>
-            <option>Beauty Parlour</option>
-          </select>
+          {/* Show category dropdown ONLY if not doctor */}
+          {role !== "doctor" && (
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+            >
+              <option value="">Select Category</option>
+              <option>Doctor</option>
+              <option>Mental Health</option>
+              <option>Physical Health</option>
+              <option>Spa & Retreats Center</option>
+              <option>Beauty Parlour</option>
+            </select>
+          )}
 
           <input
             name="speciality"
@@ -254,7 +269,6 @@ export default function VendorRegistrationForm() {
               value={formData.appointmentDuration}
               onChange={handleChange}
             />
-
           </div>
 
           {formData.category === "Doctor" && (
@@ -273,7 +287,11 @@ export default function VendorRegistrationForm() {
           className="vendor-submit-btn"
           disabled={!isFormValid || loading}
         >
-          {loading ? "Registering..." : "Register Vendor"}
+          {loading
+            ? "Registering..."
+            : role === "doctor"
+            ? "Register Doctor"
+            : "Register Vendor"}
         </button>
       </form>
     </div>
