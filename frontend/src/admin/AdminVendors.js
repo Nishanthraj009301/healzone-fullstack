@@ -43,13 +43,13 @@ export default function AdminVendors() {
   async function updateStatus(id, status) {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/admin/vendors/${id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status }),
-        }
-      );
+  `${process.env.REACT_APP_API_URL}/api/admin/vendors/${id}`,
+  {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  }
+);
 
       const data = await res.json();
 
