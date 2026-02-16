@@ -19,7 +19,8 @@ export default function AdminVendors() {
   useEffect(() => {
     async function fetchVendors() {
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/doctors`);
+        const res = await fetch(
+  `${process.env.REACT_APP_API_URL}/api/admin/vendors`);
         const data = await res.json();
 
         if (!res.ok) {
