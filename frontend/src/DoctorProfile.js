@@ -15,7 +15,7 @@ export default function DoctorProfile() {
 
     async function fetchDoctor() {
       try {
-        const res = await fetch(`http://localhost:5000/api/doctors/${id}`);
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/doctors/${id}`);
         if (!res.ok) throw new Error("Doctor not found");
         const data = await res.json();
         if (mounted) setDoctor(data);

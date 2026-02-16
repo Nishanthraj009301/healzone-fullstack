@@ -30,7 +30,7 @@ export default function DoctorList() {
 
   /* ================= FETCH ================= */
   useEffect(() => {
-    fetch("http://localhost:5000/api/doctors")
+    fetch(`${process.env.REACT_APP_API_URL}/api/doctors`)
       .then((res) => res.json())
       .then((data) => {
         setDoctors(Array.isArray(data) ? data : []);

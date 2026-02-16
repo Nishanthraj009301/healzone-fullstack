@@ -66,7 +66,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchDoctors() {
       try {
-        const res = await fetch("http://localhost:5000/api/doctors");
+        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/doctors`);
         const data = await res.json();
 
         if (res.ok) {

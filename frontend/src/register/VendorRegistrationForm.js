@@ -96,7 +96,7 @@ export default function VendorRegistrationForm({ role }) {
         services: formData.services,
       };
 
-      const res = await fetch("http://localhost:5000/api/vendors/register", {
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/vendors/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
