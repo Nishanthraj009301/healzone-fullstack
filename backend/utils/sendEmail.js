@@ -1,29 +1,38 @@
 const nodemailer = require("nodemailer");
 
-const sendEmail = async ({ to, subject, html }) => {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST, // smtp.zeptomail.in
-      port: Number(process.env.EMAIL_PORT), // 587
-      secure: process.env.EMAIL_SECURE === "true", // false for 587
-      auth: {
-        user: process.env.EMAIL_USERNAME, // usually "emailapikey"
-        pass: process.env.EMAIL_PASSWORD, // your long API key
-      },
-    });
+const sendEmail = async (...args) => {
+  let to, subject, html;
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM, // noreply@heal-zone.com
-      to,
-      subject,
-      html,
-    });
-
-    console.log("📧 Email sent successfully via ZeptoMail");
-  } catch (error) {
-    console.error("❌ Email sending failed:", error.message);
-    throw error;
+  // Support both object style and positional style
+  if (typeof args[0] === "object") {
+    ({ to, subject, html } = args[0]);
+  } else {
+    [to, subject, html] = args;
   }
+
+  if (!to) throw new Error("Recipient email is missing");
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: Number(process.env.EMAIL_PORT),
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USERNAME,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  const fromAddress =
+    process.env.EMAIL_FROM || `"HealZone" <${process.env.EMAIL_USERNAME}>`;
+
+  const info = await transporter.sendMail({
+    from: fromAddress,
+    to,
+    subject,
+    html,
+  });
+
+  console.log("✅ Email sent:", info.response);
 };
 
 module.exports = sendEmail;
