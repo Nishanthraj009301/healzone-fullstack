@@ -1,49 +1,39 @@
 const nodemailer = require("nodemailer");
 
-const sendEmail = async (...args) => {
-  let to, subject, html;
+let transporter;
 
-  // Support both object style and positional style
-  if (typeof args[0] === "object") {
-    ({ to, subject, html } = args[0]);
-  } else {
-    [to, subject, html] = args;
+function getTransporter() {
+  if (!transporter) {
+    console.log("🚀 Creating SMTP transporter...");
+
+    transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT),
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+      pool: true,               // 🔥 enable pooling
+      maxConnections: 5,
+      maxMessages: 100,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
+      family: 4                 // force IPv4
+    });
   }
 
-  if (!to) {
-    throw new Error("Recipient email is missing");
-  }
+  return transporter;
+}
 
-  console.log("📡 SMTP CONFIG CHECK:", {
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    user: process.env.EMAIL_USERNAME,
-    from: process.env.EMAIL_FROM,
-  });
+const sendEmail = async ({ to, subject, html }) => {
+  if (!to) throw new Error("Recipient email missing");
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT),
-    secure: false, // true only if using 465
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
-    tls: {
-      rejectUnauthorized: false,
-    },
-    family: 4, // 🔥 FORCE IPv4 (fixes many Render SMTP issues)
-  });
+  const smtp = getTransporter();
 
   try {
-    // Verify connection before sending
-    await transporter.verify();
-    console.log("✅ SMTP connection verified");
-
-    const info = await transporter.sendMail({
+    const info = await smtp.sendMail({
       from:
         process.env.EMAIL_FROM ||
         `"HealZone" <${process.env.EMAIL_USERNAME}>`,
@@ -55,7 +45,7 @@ const sendEmail = async (...args) => {
     console.log("✅ Email sent:", info.response);
     return info;
   } catch (error) {
-    console.error("❌ SMTP ERROR:", error);
+    console.error("❌ SMTP ERROR:", error.message);
     throw error;
   }
 };
