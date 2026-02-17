@@ -4,36 +4,68 @@ const sendEmail = require("../utils/sendEmail");
 
 exports.createBooking = async (req, res) => {
   try {
-    console.log("BOOKING BODY:", req.body);
+    console.log("📥 BOOKING BODY:", req.body);
+
+    const {
+      vendorId,
+      doctorId,
+      bookingDate,
+      bookingTime,
+      fullName,
+      email,
+      phone,
+      consultationFee,
+    } = req.body;
+
+    /* ================= BASIC VALIDATION ================= */
+
+    if (!doctorId) {
+      return res.status(400).json({
+        message: "Doctor ID is required",
+      });
+    }
+
+    if (!bookingDate || !bookingTime) {
+      return res.status(400).json({
+        message: "Booking date and time are required",
+      });
+    }
+
+    if (!fullName || !email) {
+      return res.status(400).json({
+        message: "Name and email are required",
+      });
+    }
+
+    /* ================= CREATE BOOKING ================= */
 
     const booking = await Booking.create({
       referenceNumber: "HZ-" + Date.now(),
 
-      vendorId: req.body.vendorId || null,
-      doctorId: req.body.doctorId || null,
+      vendorId: vendorId || null,
+      doctorId: doctorId || null,
 
-      bookingDate: req.body.bookingDate
-        ? new Date(req.body.bookingDate)
-        : new Date(),
+      bookingDate: new Date(bookingDate),
+      bookingTime: bookingTime || "",
 
-      bookingTime: req.body.bookingTime || "",
+      fullName: fullName || "",
+      email: email || "",
+      phone: phone || "",
 
-      fullName: req.body.fullName || "",
-      email: req.body.email || "",
-      phone: req.body.phone || "",
-
-      consultationFee: req.body.consultationFee || 0,
-      status: req.body.status || "CONFIRMED",
+      consultationFee: consultationFee || 0,
+      status: "CONFIRMED",
     });
 
-    // ================= FETCH DOCTOR DETAILS =================
+    console.log("✅ Booking saved successfully");
+
+    /* ================= FETCH DOCTOR DETAILS ================= */
+
     let doctor = null;
 
     if (booking.doctorId) {
       doctor = await Doctor.findById(booking.doctorId);
     }
 
-    // ================= PREPARE GOOGLE MAP LINK =================
     const mapsLink =
       doctor?.latitude && doctor?.longitude
         ? `https://www.google.com/maps?q=${doctor.latitude},${doctor.longitude}`
@@ -43,8 +75,11 @@ exports.createBooking = async (req, res) => {
       ? `${doctor.address1 || ""}, ${doctor.city || ""}`
       : "Not available";
 
-    // ================= SEND EMAIL =================
+    /* ================= SEND CONFIRMATION EMAIL ================= */
+
     try {
+      console.log("📧 Sending booking email to:", booking.email);
+
       await sendEmail({
         to: booking.email,
         subject: "Healzone Appointment Confirmation",
@@ -93,6 +128,7 @@ exports.createBooking = async (req, res) => {
             <p><b>Consultation Fee:</b> ₹${booking.consultationFee}</p>
 
             <hr/>
+
             <p style="margin-top:15px;">
               Thank you for choosing <b>Healzone</b>.  
               We look forward to serving you.
@@ -101,10 +137,14 @@ exports.createBooking = async (req, res) => {
         `,
       });
 
-      console.log("📧 Email sent successfully");
+      console.log("✅ Booking email sent successfully");
+
     } catch (emailError) {
-      console.error("❌ Email failed:", emailError.message);
+      console.error("❌ Booking email failed:", emailError.message);
+      // IMPORTANT: Do NOT fail booking if email fails
     }
+
+    /* ================= SUCCESS RESPONSE ================= */
 
     return res.status(201).json({
       message: "Booking saved successfully",
@@ -112,7 +152,7 @@ exports.createBooking = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("BOOKING ERROR:", err);
+    console.error("❌ BOOKING ERROR:", err);
 
     return res.status(500).json({
       message: "Booking failed",
