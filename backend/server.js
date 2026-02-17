@@ -44,6 +44,23 @@ app.get("/", (req, res) => {
   res.send("Healzone backend running 🚀");
 });
 
+app.get("/test-email", async (req, res) => {
+  try {
+    const sendEmail = require("./utils/sendEmail");
+
+    await sendEmail({
+      to: "yourpersonalemail@gmail.com", // change to your real email
+      subject: "Test Email from HealZone",
+      html: "<h1>Email system is working ✅</h1>"
+    });
+
+    res.send("Email sent successfully");
+  } catch (err) {
+    console.error("EMAIL TEST ERROR:", err);
+    res.status(500).send(err.message);
+  }
+});
+
 /* =========================================================
    HELPER: Normalize Excel-style consultation_hours
 ========================================================= */

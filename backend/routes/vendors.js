@@ -9,8 +9,14 @@ const router = express.Router();
    REGISTER (VENDOR + DOCTOR) - DEFAULT STATUS = PENDING
 ========================================================= */
 router.post("/register", async (req, res) => {
+  console.log("🚀 REGISTER ROUTE HIT");
+
   try {
-    console.log("🚀 REGISTER ROUTE HIT");
+    if (!req.body) {
+      console.log("❌ No body received");
+      return res.status(400).json({ message: "Request body missing" });
+    }
+
     console.log("BODY:", req.body);
 
     const data = req.body;
@@ -18,42 +24,52 @@ router.post("/register", async (req, res) => {
     /* ================= VALIDATION ================= */
 
     if (!data.firstName || !data.lastName) {
+      console.log("❌ Name validation failed");
       return res.status(400).json({
-        message: "First name and last name are required"
+        message: "First name and last name are required",
       });
     }
 
     if (!data.email) {
+      console.log("❌ Email missing");
       return res.status(400).json({
-        message: "Email is required"
+        message: "Email is required",
       });
     }
 
     if (!data.password) {
+      console.log("❌ Password missing");
       return res.status(400).json({
-        message: "Password is required"
+        message: "Password is required",
       });
     }
 
     if (!data.category) {
+      console.log("❌ Category missing");
       return res.status(400).json({
-        message: "Category is required"
+        message: "Category is required",
       });
     }
 
-    /* ================= CHECK DUPLICATE EMAIL ================= */
+    console.log("✅ Validation passed");
+
+    /* ================= CHECK DUPLICATE ================= */
 
     const existingVendor = await Vendor.findOne({ email: data.email });
 
     if (existingVendor) {
+      console.log("❌ Duplicate email found");
       return res.status(400).json({
-        message: "Email already registered"
+        message: "Email already registered",
       });
     }
+
+    console.log("✅ No duplicate found");
 
     /* ================= HASH PASSWORD ================= */
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
+    console.log("✅ Password hashed");
 
     /* ================= CREATE RECORD ================= */
 
@@ -78,11 +94,19 @@ router.post("/register", async (req, res) => {
       services: data.services || [],
 
       status: "PENDING",
-      isActive: true
+      isActive: true,
     });
 
-    await vendor.save();
-    console.log("✅ Vendor saved successfully");
+    try {
+      await vendor.save();
+      console.log("✅ Vendor saved successfully");
+    } catch (saveError) {
+      console.error("❌ SAVE ERROR:", saveError);
+      return res.status(500).json({
+        message: "Database save failed",
+        error: saveError.message,
+      });
+    }
 
     /* ================= SEND EMAIL ================= */
 
@@ -93,116 +117,29 @@ router.post("/register", async (req, res) => {
         to: vendor.email,
         subject: "HealZone Registration Received - Pending Approval",
         html: `
-          <div style="font-family: Arial, Helvetica, sans-serif; background-color:#f4f6f8; padding:30px;">
-            
-            <div style="max-width:600px; margin:0 auto; background:#ffffff; padding:30px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-              
-              <h2 style="color:#2563eb;">
-                Welcome to HealZone, ${vendor.firstName}
-              </h2>
-
-              <p>
-                Thank you for registering as a <strong>${vendor.category}</strong>.
-              </p>
-
-              <p>
-                Your profile is currently under review by our admin team.
-              </p>
-
-              <div style="background:#f3f4f6; padding:15px; border-radius:6px; margin:20px 0;">
-                <p><strong>Status:</strong> Pending Approval</p>
-                <p><strong>Category:</strong> ${vendor.category}</p>
-                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-              </div>
-
-              <p>
-                We’ll notify you once your profile is approved.
-              </p>
-
-              <hr style="margin:25px 0;" />
-
-              <p style="font-size:13px; color:#777;">
-                Regards,<br/>
-                <strong>HealZone Team</strong>
-              </p>
-
-            </div>
+          <div style="font-family: Arial;">
+            <h2>Welcome to HealZone, ${vendor.firstName}</h2>
+            <p>Your registration as ${vendor.category} is under review.</p>
           </div>
-        `
+        `,
       });
 
       console.log("✅ Registration email sent successfully");
     } catch (emailError) {
       console.error("❌ Email sending failed:", emailError.message);
+      // Do NOT fail registration because of email
     }
-
-    /* ================= SUCCESS RESPONSE ================= */
 
     return res.status(201).json({
       message: "Registration successful. Awaiting admin approval.",
-      vendorId: vendor._id
+      vendorId: vendor._id,
     });
 
   } catch (err) {
     console.error("❌ REGISTER ERROR:", err);
-
     return res.status(500).json({
       message: "Registration failed",
-      error: err.message
-    });
-  }
-});
-
-/* =========================================================
-   GET APPROVED VENDORS
-========================================================= */
-router.get("/approved", async (req, res) => {
-  try {
-    const vendors = await Vendor.find({
-      status: "APPROVED",
-      isActive: true
-    }).select("-password");
-
-    return res.json(vendors);
-  } catch (err) {
-    console.error("Approved vendors error:", err);
-    return res.status(500).json({
-      message: "Failed to fetch approved vendors"
-    });
-  }
-});
-
-/* =========================================================
-   GET APPROVED DOCTORS ONLY
-========================================================= */
-router.get("/doctors", async (req, res) => {
-  try {
-    const doctors = await Vendor.find({
-      category: "Doctor",
-      status: "APPROVED",
-      isActive: true
-    }).select("-password");
-
-    return res.json(doctors);
-  } catch (err) {
-    console.error("Doctors fetch error:", err);
-    return res.status(500).json({
-      message: "Failed to fetch doctors"
-    });
-  }
-});
-
-/* =========================================================
-   GET ALL VENDORS (ADMIN)
-========================================================= */
-router.get("/", async (req, res) => {
-  try {
-    const vendors = await Vendor.find().select("-password");
-    return res.json(vendors);
-  } catch (err) {
-    console.error("All vendors fetch error:", err);
-    return res.status(500).json({
-      message: "Failed to fetch vendors"
+      error: err.message,
     });
   }
 });

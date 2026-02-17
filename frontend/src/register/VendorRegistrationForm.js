@@ -95,12 +95,14 @@ export default function VendorRegistrationForm({ role }) {
         appointmentDuration: Number(formData.appointmentDuration),
         services: formData.services,
       };
-
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/api/vendors/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+  `${process.env.REACT_APP_API_URL}/api/vendors/register`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }
+);
 
       const data = await res.json();
 
