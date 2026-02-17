@@ -77,72 +77,120 @@ exports.createBooking = async (req, res) => {
 
     /* ================= SEND CONFIRMATION EMAIL ================= */
 
-    try {
-      console.log("📧 Sending booking email to:", booking.email);
+try {
+  console.log("📧 Sending booking email to:", booking.email);
 
-      await sendEmail({
-        to: booking.email,
-        subject: "Healzone Appointment Confirmation",
-        html: `
-          <div style="font-family: Arial, sans-serif; padding:20px; line-height:1.6;">
-            
-            <h2 style="color:#3b82f6;">Appointment Confirmed 🎉</h2>
-            
-            <p>Hello <b>${booking.fullName}</b>,</p>
-            <p>Your appointment has been successfully booked.</p>
+  await sendEmail({
+    to: booking.email,
+    subject: "HealZone – Appointment Confirmed",
+    html: `
+      <div style="font-family: Arial, Helvetica, sans-serif; background:#f4f6f9; padding:40px 20px;">
+        
+        <div style="max-width:600px; margin:0 auto; background:#ffffff; padding:30px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.08);">
 
-            <hr/>
+          <h2 style="color:#2563eb; margin-bottom:10px;">
+            Appointment Confirmed 🎉
+          </h2>
 
-            <h3 style="margin-bottom:5px;">Doctor Details</h3>
-            <p><b>Doctor:</b> ${doctor?.name || "Doctor not available"}</p>
-            <p><b>Speciality:</b> ${
+          <p style="font-size:14px; color:#333; line-height:1.6;">
+            Hello <strong>${booking.fullName}</strong>,
+          </p>
+
+          <p style="font-size:14px; color:#333; line-height:1.6;">
+            Your appointment has been successfully scheduled. 
+            Please find the details below:
+          </p>
+
+          <hr style="margin:25px 0; border:none; border-top:1px solid #e5e7eb;" />
+
+          <!-- Doctor Section -->
+          <h3 style="margin-bottom:8px; color:#111;">Doctor Details</h3>
+
+          <p style="margin:4px 0; font-size:14px;">
+            <strong>Doctor:</strong> ${doctor?.name || "Not Available"}
+          </p>
+
+          <p style="margin:4px 0; font-size:14px;">
+            <strong>Speciality:</strong> ${
               doctor?.speciality || doctor?.focus_area || "-"
-            }</p>
-            <p><b>Clinic Address:</b> ${clinicAddress}</p>
-
-            ${
-              mapsLink
-                ? `
-                  <a href="${mapsLink}" target="_blank"
-                    style="
-                      display:inline-block;
-                      padding:10px 16px;
-                      background:#3b82f6;
-                      color:white;
-                      text-decoration:none;
-                      border-radius:6px;
-                      margin-top:8px;
-                    ">
-                    📍 Open in Google Maps
-                  </a>
-                `
-                : ""
             }
+          </p>
 
-            <hr/>
+          <p style="margin:4px 0 12px 0; font-size:14px;">
+            <strong>Clinic Address:</strong> ${clinicAddress}
+          </p>
 
-            <h3 style="margin-bottom:5px;">Appointment Details</h3>
-            <p><b>Date:</b> ${booking.bookingDate.toDateString()}</p>
-            <p><b>Time:</b> ${booking.bookingTime}</p>
-            <p><b>Reference:</b> ${booking.referenceNumber}</p>
-            <p><b>Consultation Fee:</b> ₹${booking.consultationFee}</p>
+          ${
+            mapsLink
+              ? `
+                <a href="${mapsLink}" target="_blank"
+                  style="
+                    display:inline-block;
+                    padding:10px 18px;
+                    background:#2563eb;
+                    color:#ffffff;
+                    text-decoration:none;
+                    border-radius:6px;
+                    font-size:14px;
+                    margin-bottom:20px;
+                  ">
+                  📍 View Location on Google Maps
+                </a>
+              `
+              : ""
+          }
 
-            <hr/>
+          <hr style="margin:25px 0; border:none; border-top:1px solid #e5e7eb;" />
 
-            <p style="margin-top:15px;">
-              Thank you for choosing <b>Healzone</b>.  
-              We look forward to serving you.
+          <!-- Appointment Section -->
+          <h3 style="margin-bottom:8px; color:#111;">Appointment Details</h3>
+
+          <p style="margin:4px 0; font-size:14px;">
+            <strong>Date:</strong> ${booking.bookingDate.toDateString()}
+          </p>
+
+          <p style="margin:4px 0; font-size:14px;">
+            <strong>Time:</strong> ${booking.bookingTime}
+          </p>
+
+          <p style="margin:4px 0; font-size:14px;">
+            <strong>Reference Number:</strong> ${booking.referenceNumber}
+          </p>
+
+          <p style="margin:4px 0; font-size:14px;">
+            <strong>Consultation Fee:</strong> ₹${booking.consultationFee}
+          </p>
+
+          <div style="background:#eef2ff; padding:15px; border-radius:6px; margin-top:20px;">
+            <p style="margin:0; font-size:13px; color:#333;">
+              Please arrive 10 minutes before your scheduled time. 
+              Carry any relevant medical records if applicable.
             </p>
           </div>
-        `,
-      });
 
-      console.log("✅ Booking email sent successfully");
+          <hr style="margin:30px 0; border:none; border-top:1px solid #e5e7eb;" />
 
-    } catch (emailError) {
-      console.error("❌ Booking email failed:", emailError.message);
-      // IMPORTANT: Do NOT fail booking if email fails
-    }
+          <p style="font-size:14px; color:#333;">
+            Thank you for choosing <strong>HealZone</strong>.  
+            We are committed to providing you with quality healthcare services.
+          </p>
+
+          <p style="font-size:13px; color:#777; margin-top:20px;">
+            Regards,<br/>
+            <strong>HealZone Team</strong><br/>
+            Connecting You to Better Care
+          </p>
+
+        </div>
+      </div>
+    `,
+  });
+
+  console.log("✅ Booking email sent successfully");
+
+} catch (emailError) {
+  console.error("❌ Booking email failed:", emailError.message);
+}
 
     /* ================= SUCCESS RESPONSE ================= */
 

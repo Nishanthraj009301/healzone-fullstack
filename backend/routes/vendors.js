@@ -108,27 +108,76 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    /* ================= SEND EMAIL ================= */
+/* ================= SEND EMAIL ================= */
 
-    try {
-      console.log("📧 Sending email to:", vendor.email);
+try {
+  console.log("📧 Sending email to:", vendor.email);
 
-      await sendEmail({
-        to: vendor.email,
-        subject: "HealZone Registration Received - Pending Approval",
-        html: `
-          <div style="font-family: Arial;">
-            <h2>Welcome to HealZone, ${vendor.firstName}</h2>
-            <p>Your registration as ${vendor.category} is under review.</p>
+  await sendEmail({
+    to: vendor.email,
+    subject: "HealZone – Registration Received & Under Review",
+    html: `
+      <div style="font-family: Arial, Helvetica, sans-serif; background:#f4f6f9; padding:40px 20px;">
+        
+        <div style="max-width:600px; margin:0 auto; background:#ffffff; padding:30px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.06);">
+          
+          <h2 style="color:#2563eb; margin-bottom:10px;">
+            Welcome to HealZone, ${vendor.firstName} 👋
+          </h2>
+
+          <p style="color:#333; font-size:14px; line-height:1.6;">
+            Thank you for registering as a <strong>${vendor.category}</strong> partner on <b>HealZone</b>.
+          </p>
+
+          <p style="color:#333; font-size:14px; line-height:1.6;">
+            We have successfully received your registration details. 
+            Your profile is currently being reviewed by our admin team to ensure quality and compliance.
+          </p>
+
+          <div style="background:#eef2ff; padding:15px 20px; border-radius:6px; margin:20px 0;">
+            <p style="margin:6px 0; font-size:14px;">
+              <strong>Registration Status:</strong> Pending Approval
+            </p>
+            <p style="margin:6px 0; font-size:14px;">
+              <strong>Category:</strong> ${vendor.category}
+            </p>
+            <p style="margin:6px 0; font-size:14px;">
+              <strong>Registered On:</strong> ${new Date().toDateString()}
+            </p>
           </div>
-        `,
-      });
 
-      console.log("✅ Registration email sent successfully");
-    } catch (emailError) {
-      console.error("❌ Email sending failed:", emailError.message);
-      // Do NOT fail registration because of email
-    }
+          <p style="color:#333; font-size:14px; line-height:1.6;">
+            Once your profile is approved, you will receive a confirmation email 
+            with further instructions to start accepting appointments on HealZone.
+          </p>
+
+          <p style="color:#333; font-size:14px; line-height:1.6;">
+            If you have any questions in the meantime, feel free to contact our support team.
+          </p>
+
+          <hr style="margin:30px 0; border:none; border-top:1px solid #e5e7eb;" />
+
+          <p style="font-size:13px; color:#666; margin-bottom:4px;">
+            Regards,
+          </p>
+          <p style="font-size:14px; font-weight:bold; color:#111;">
+            HealZone Team
+          </p>
+          <p style="font-size:12px; color:#888;">
+            Connecting You to Better Care
+          </p>
+
+        </div>
+      </div>
+    `,
+  });
+
+  console.log("✅ Registration email sent successfully");
+
+} catch (emailError) {
+  console.error("❌ Email sending failed:", emailError.message);
+  // Do NOT fail registration because of email
+}
 
     return res.status(201).json({
       message: "Registration successful. Awaiting admin approval.",
