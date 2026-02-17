@@ -10,29 +10,54 @@ const sendEmail = async (...args) => {
     [to, subject, html] = args;
   }
 
-  if (!to) throw new Error("Recipient email is missing");
+  if (!to) {
+    throw new Error("Recipient email is missing");
+  }
+
+  console.log("📡 SMTP CONFIG CHECK:", {
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    user: process.env.EMAIL_USERNAME,
+    from: process.env.EMAIL_FROM,
+  });
 
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: Number(process.env.EMAIL_PORT),
-    secure: false,
+    secure: false, // true only if using 465
     auth: {
       user: process.env.EMAIL_USERNAME,
       pass: process.env.EMAIL_PASSWORD,
     },
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+    tls: {
+      rejectUnauthorized: false,
+    },
+    family: 4, // 🔥 FORCE IPv4 (fixes many Render SMTP issues)
   });
 
-  const fromAddress =
-    process.env.EMAIL_FROM || `"HealZone" <${process.env.EMAIL_USERNAME}>`;
+  try {
+    // Verify connection before sending
+    await transporter.verify();
+    console.log("✅ SMTP connection verified");
 
-  const info = await transporter.sendMail({
-    from: fromAddress,
-    to,
-    subject,
-    html,
-  });
+    const info = await transporter.sendMail({
+      from:
+        process.env.EMAIL_FROM ||
+        `"HealZone" <${process.env.EMAIL_USERNAME}>`,
+      to,
+      subject,
+      html,
+    });
 
-  console.log("✅ Email sent:", info.response);
+    console.log("✅ Email sent:", info.response);
+    return info;
+  } catch (error) {
+    console.error("❌ SMTP ERROR:", error);
+    throw error;
+  }
 };
 
 module.exports = sendEmail;
