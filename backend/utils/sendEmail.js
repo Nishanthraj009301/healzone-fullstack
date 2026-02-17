@@ -23,10 +23,10 @@ const sendEmail = async ({ to, subject, html }) => {
       },
       {
         headers: {
-          accept: "application/json",
-          "content-type": "application/json",
-          authorization: process.env.EMAIL_PASSWORD, // your ZeptoMail token
-        },
+  accept: "application/json",
+  "content-type": "application/json",
+  Authorization: `Zoho-enczapikey ${process.env.EMAIL_PASSWORD}`,
+},
         timeout: 10000,
       }
     );
@@ -43,4 +43,4 @@ const sendEmail = async ({ to, subject, html }) => {
   }
 };
 
-module.exports = sendEmail;
+module.exports = sendEmail; 
