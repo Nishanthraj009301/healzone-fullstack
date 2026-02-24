@@ -1,57 +1,79 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const bookingRoutes = require("./routes/bookingRoutes");
 const vendorRoutes = require("./routes/vendors");
 const adminRoutes = require("./routes/admin");
+const authRoutes = require("./routes/authRoutes");
 
 const Doctor = require("./models/Doctor");
 
 const app = express();
 
-/* ================= MIDDLEWARE ================= */
+/* =========================================================
+   MIDDLEWARE
+========================================================= */
 
-// CORS first
-app.use(cors());
+// ✅ Secure CORS (important for cookies)
+const cors = require("cors");
 
-// Body parsers (VERY IMPORTANT)
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",           // local development
+      "https://heal-zone.netlify.app",   // 🔥 production frontend
+    ],
+    credentials: true,
+  })
+);
+
+// ✅ Body parsers
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// Debug middleware (temporary — remove later)
-app.use((req, res, next) => {
-  console.log("➡️ Incoming:", req.method, req.url);
-  next();
-});
+// ✅ Cookie parser (for JWT in cookies)
+app.use(cookieParser());
 
-// Routes
+// ✅ Debug middleware (remove in production)
+if (process.env.NODE_ENV !== "production") {
+  app.use((req, res, next) => {
+    console.log("➡️ Incoming:", req.method, req.url);
+    next();
+  });
+}
+
+/* =========================================================
+   ROUTES
+========================================================= */
+
+app.use("/api/auth", authRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 
-/* ================= MONGODB CONNECTION ================= */
-
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
-
-/* ================= HEALTH CHECK ================= */
+/* =========================================================
+   HEALTH CHECK
+========================================================= */
 
 app.get("/", (req, res) => {
   res.send("Healzone backend running 🚀");
 });
+
+/* =========================================================
+   EMAIL TEST ROUTE
+========================================================= */
 
 app.get("/test-email", async (req, res) => {
   try {
     const sendEmail = require("./utils/sendEmail");
 
     await sendEmail({
-      to: "yourpersonalemail@gmail.com", // change to your real email
+      to: "yourpersonalemail@gmail.com", // change this
       subject: "Test Email from HealZone",
-      html: "<h1>Email system is working ✅</h1>"
+      html: "<h1>Email system is working ✅</h1>",
     });
 
     res.send("Email sent successfully");
@@ -89,7 +111,7 @@ function normalizeConsultationHours(doc) {
    GET ALL DOCTORS
 ========================================================= */
 
-app.get("/api/doctors", async (req, res) => {
+app.get("/api/doctors", async (req, res, next) => {
   try {
     const rows = await Doctor.find({
       name: { $exists: true, $ne: "" },
@@ -125,8 +147,7 @@ app.get("/api/doctors", async (req, res) => {
 
     res.json(Object.values(doctorMap));
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to fetch doctors" });
+    next(err);
   }
 });
 
@@ -134,7 +155,7 @@ app.get("/api/doctors", async (req, res) => {
    GET SINGLE DOCTOR
 ========================================================= */
 
-app.get("/api/doctors/:id", async (req, res) => {
+app.get("/api/doctors/:id", async (req, res, next) => {
   try {
     const row = await Doctor.findById(req.params.id);
 
@@ -168,15 +189,40 @@ app.get("/api/doctors/:id", async (req, res) => {
 
     res.json(doctor);
   } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: "Invalid doctor ID" });
+    next(err);
   }
 });
 
-/* ================= START SERVER ================= */
+/* =========================================================
+   GLOBAL ERROR HANDLER
+========================================================= */
+
+app.use((err, req, res, next) => {
+  console.error("🔥 GLOBAL ERROR:", err);
+  res.status(500).json({
+    message: "Something went wrong",
+    error:
+      process.env.NODE_ENV === "production"
+        ? undefined
+        : err.message,
+  });
+});
+
+/* =========================================================
+   MONGODB CONNECTION + START SERVER
+========================================================= */
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("✅ MongoDB Connected");
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+  });

@@ -2,6 +2,9 @@ const Booking = require("../models/Booking");
 const Doctor = require("../models/Doctor");
 const sendEmail = require("../utils/sendEmail");
 
+/* =========================================================
+   CREATE BOOKING (Protected Route Required)
+========================================================= */
 exports.createBooking = async (req, res) => {
   try {
     console.log("📥 BOOKING BODY:", req.body);
@@ -11,8 +14,6 @@ exports.createBooking = async (req, res) => {
       doctorId,
       bookingDate,
       bookingTime,
-      fullName,
-      email,
       phone,
       consultationFee,
     } = req.body;
@@ -31,9 +32,19 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    if (!fullName || !email) {
-      return res.status(400).json({
-        message: "Name and email are required",
+    if (!req.user) {
+      return res.status(401).json({
+        message: "User not authenticated",
+      });
+    }
+
+    /* ================= FETCH DOCTOR ================= */
+
+    const doctor = await Doctor.findById(doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({
+        message: "Doctor not found",
       });
     }
 
@@ -42,14 +53,16 @@ exports.createBooking = async (req, res) => {
     const booking = await Booking.create({
       referenceNumber: "HZ-" + Date.now(),
 
+      user: req.user._id, // 🔐 attach logged-in user
+
       vendorId: vendorId || null,
-      doctorId: doctorId || null,
+      doctorId,
 
       bookingDate: new Date(bookingDate),
-      bookingTime: bookingTime || "",
+      bookingTime,
 
-      fullName: fullName || "",
-      email: email || "",
+      fullName: req.user.name,   // 🔥 from logged-in user
+      email: req.user.email,     // 🔥 from logged-in user
       phone: phone || "",
 
       consultationFee: consultationFee || 0,
@@ -58,139 +71,97 @@ exports.createBooking = async (req, res) => {
 
     console.log("✅ Booking saved successfully");
 
-    /* ================= FETCH DOCTOR DETAILS ================= */
-
-    let doctor = null;
-
-    if (booking.doctorId) {
-      doctor = await Doctor.findById(booking.doctorId);
-    }
+    /* ================= PREPARE EMAIL DATA ================= */
 
     const mapsLink =
-      doctor?.latitude && doctor?.longitude
+      doctor.latitude && doctor.longitude
         ? `https://www.google.com/maps?q=${doctor.latitude},${doctor.longitude}`
         : null;
 
-    const clinicAddress = doctor
-      ? `${doctor.address1 || ""}, ${doctor.city || ""}`
-      : "Not available";
+    const clinicAddress = `${doctor.address1 || ""}, ${doctor.city || ""}`;
 
     /* ================= SEND CONFIRMATION EMAIL ================= */
 
-try {
-  console.log("📧 Sending booking email to:", booking.email);
+    try {
+      console.log("📧 Sending booking email to:", booking.email);
 
-  await sendEmail({
-    to: booking.email,
-    subject: "HealZone – Appointment Confirmed",
-    html: `
-      <div style="font-family: Arial, Helvetica, sans-serif; background:#f4f6f9; padding:40px 20px;">
-        
-        <div style="max-width:600px; margin:0 auto; background:#ffffff; padding:30px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.08);">
+      await sendEmail({
+        to: booking.email,
+        subject: "HealZone – Appointment Confirmed",
+        html: `
+          <div style="font-family: Arial, Helvetica, sans-serif; background:#f4f6f9; padding:40px 20px;">
+            
+            <div style="max-width:600px; margin:0 auto; background:#ffffff; padding:30px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.08);">
 
-          <h2 style="color:#2563eb; margin-bottom:10px;">
-            Appointment Confirmed 🎉
-          </h2>
+              <h2 style="color:#2563eb; margin-bottom:10px;">
+                Appointment Confirmed 🎉
+              </h2>
 
-          <p style="font-size:14px; color:#333; line-height:1.6;">
-            Hello <strong>${booking.fullName}</strong>,
-          </p>
+              <p style="font-size:14px; color:#333;">
+                Hello <strong>${booking.fullName}</strong>,
+              </p>
 
-          <p style="font-size:14px; color:#333; line-height:1.6;">
-            Your appointment has been successfully scheduled. 
-            Please find the details below:
-          </p>
+              <p style="font-size:14px; color:#333;">
+                Your appointment has been successfully scheduled.
+              </p>
 
-          <hr style="margin:25px 0; border:none; border-top:1px solid #e5e7eb;" />
+              <hr style="margin:25px 0; border:none; border-top:1px solid #e5e7eb;" />
 
-          <!-- Doctor Section -->
-          <h3 style="margin-bottom:8px; color:#111;">Doctor Details</h3>
+              <h3 style="margin-bottom:8px; color:#111;">Doctor Details</h3>
 
-          <p style="margin:4px 0; font-size:14px;">
-            <strong>Doctor:</strong> ${doctor?.name || "Not Available"}
-          </p>
+              <p><strong>Doctor:</strong> ${doctor.name}</p>
+              <p><strong>Speciality:</strong> ${
+                doctor.speciality || doctor.focus_area || "-"
+              }</p>
+              <p><strong>Clinic Address:</strong> ${clinicAddress}</p>
 
-          <p style="margin:4px 0; font-size:14px;">
-            <strong>Speciality:</strong> ${
-              doctor?.speciality || doctor?.focus_area || "-"
-            }
-          </p>
+              ${
+                mapsLink
+                  ? `
+                    <a href="${mapsLink}" target="_blank"
+                      style="display:inline-block;padding:10px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;font-size:14px;margin-bottom:20px;">
+                      📍 View Location on Google Maps
+                    </a>
+                  `
+                  : ""
+              }
 
-          <p style="margin:4px 0 12px 0; font-size:14px;">
-            <strong>Clinic Address:</strong> ${clinicAddress}
-          </p>
+              <hr style="margin:25px 0; border:none; border-top:1px solid #e5e7eb;" />
 
-          ${
-            mapsLink
-              ? `
-                <a href="${mapsLink}" target="_blank"
-                  style="
-                    display:inline-block;
-                    padding:10px 18px;
-                    background:#2563eb;
-                    color:#ffffff;
-                    text-decoration:none;
-                    border-radius:6px;
-                    font-size:14px;
-                    margin-bottom:20px;
-                  ">
-                  📍 View Location on Google Maps
-                </a>
-              `
-              : ""
-          }
+              <h3 style="margin-bottom:8px; color:#111;">Appointment Details</h3>
 
-          <hr style="margin:25px 0; border:none; border-top:1px solid #e5e7eb;" />
+              <p><strong>Date:</strong> ${booking.bookingDate.toDateString()}</p>
+              <p><strong>Time:</strong> ${booking.bookingTime}</p>
+              <p><strong>Reference Number:</strong> ${booking.referenceNumber}</p>
+              <p><strong>Consultation Fee:</strong> ₹${booking.consultationFee}</p>
 
-          <!-- Appointment Section -->
-          <h3 style="margin-bottom:8px; color:#111;">Appointment Details</h3>
+              <div style="background:#eef2ff; padding:15px; border-radius:6px; margin-top:20px;">
+                <p style="margin:0; font-size:13px;">
+                  Please arrive 10 minutes before your scheduled time.
+                </p>
+              </div>
 
-          <p style="margin:4px 0; font-size:14px;">
-            <strong>Date:</strong> ${booking.bookingDate.toDateString()}
-          </p>
+              <hr style="margin:30px 0; border:none; border-top:1px solid #e5e7eb;" />
 
-          <p style="margin:4px 0; font-size:14px;">
-            <strong>Time:</strong> ${booking.bookingTime}
-          </p>
+              <p style="font-size:14px;">
+                Thank you for choosing <strong>HealZone</strong>.
+              </p>
 
-          <p style="margin:4px 0; font-size:14px;">
-            <strong>Reference Number:</strong> ${booking.referenceNumber}
-          </p>
+              <p style="font-size:13px; color:#777;">
+                Regards,<br/>
+                <strong>HealZone Team</strong>
+              </p>
 
-          <p style="margin:4px 0; font-size:14px;">
-            <strong>Consultation Fee:</strong> ₹${booking.consultationFee}
-          </p>
-
-          <div style="background:#eef2ff; padding:15px; border-radius:6px; margin-top:20px;">
-            <p style="margin:0; font-size:13px; color:#333;">
-              Please arrive 10 minutes before your scheduled time. 
-              Carry any relevant medical records if applicable.
-            </p>
+            </div>
           </div>
+        `,
+      });
 
-          <hr style="margin:30px 0; border:none; border-top:1px solid #e5e7eb;" />
+      console.log("✅ Booking email sent successfully");
 
-          <p style="font-size:14px; color:#333;">
-            Thank you for choosing <strong>HealZone</strong>.  
-            We are committed to providing you with quality healthcare services.
-          </p>
-
-          <p style="font-size:13px; color:#777; margin-top:20px;">
-            Regards,<br/>
-            <strong>HealZone Team</strong><br/>
-            Connecting You to Better Care
-          </p>
-
-        </div>
-      </div>
-    `,
-  });
-
-  console.log("✅ Booking email sent successfully");
-
-} catch (emailError) {
-  console.error("❌ Booking email failed:", emailError.message);
-}
+    } catch (emailError) {
+      console.error("❌ Booking email failed:", emailError.message);
+    }
 
     /* ================= SUCCESS RESPONSE ================= */
 
@@ -206,5 +177,49 @@ try {
       message: "Booking failed",
       error: err.message,
     });
+  }
+};
+
+/* =========================================================
+   GET MY BOOKINGS
+========================================================= */
+exports.getMyBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({
+      user: req.user._id,
+    })
+      .populate("doctorId")
+      .sort({ createdAt: -1 });
+
+    res.json(bookings);
+  } catch (err) {
+    console.error("GET MY BOOKINGS ERROR:", err);
+    res.status(500).json({ message: "Failed to fetch bookings" });
+  }
+};
+
+/* =========================================================
+   CANCEL BOOKING
+========================================================= */
+exports.cancelBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    booking.status = "CANCELLED";
+    await booking.save();
+
+    res.json({ message: "Booking cancelled successfully" });
+
+  } catch (err) {
+    console.error("CANCEL BOOKING ERROR:", err);
+    res.status(500).json({ message: "Failed to cancel booking" });
   }
 };

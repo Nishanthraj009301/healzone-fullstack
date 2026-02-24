@@ -4,39 +4,49 @@ const bookingSchema = new mongoose.Schema(
   {
     referenceNumber: {
       type: String,
-      default: "",
+      required: true,
+      unique: true,
     },
 
-    vendorId: {
+    // 🔐 Link booking to logged-in user
+    user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Vendor",
-      default: null, // ✅ NOT REQUIRED anymore
+      ref: "User",
+      required: true,
     },
 
+    // Doctor reference
     doctorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Doctor",
+      required: true,
+    },
+
+    // Optional vendor
+    vendorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Vendor",
       default: null,
     },
 
     bookingDate: {
       type: Date,
-      default: Date.now, // ✅ safe default
+      required: true,
     },
 
     bookingTime: {
       type: String,
-      default: "",
+      required: true,
     },
 
     fullName: {
       type: String,
-      default: "",
+      required: true,
     },
 
     email: {
       type: String,
-      default: "",
+      required: true,
     },
 
     phone: {
@@ -51,11 +61,13 @@ const bookingSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["PENDING", "CONFIRMED", "CANCELLED"],
+      enum: ["CONFIRMED", "CANCELLED", "COMPLETED"],
       default: "CONFIRMED",
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true, // ✅ adds createdAt & updatedAt
+  }
 );
 
 module.exports = mongoose.model("Booking", bookingSchema);

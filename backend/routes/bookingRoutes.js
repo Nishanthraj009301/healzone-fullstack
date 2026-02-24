@@ -5,7 +5,9 @@ const {
   createBooking,
 } = require("../controllers/bookingController");
 
+const { protect } = require("../middleware/authMiddleware");
+
 // ================= CREATE BOOKING =================
-router.post("/create", createBooking);
+router.post("/create", protect, createBooking);
 
 module.exports = router;
