@@ -4,12 +4,13 @@ const cookieParser = require("cookie-parser");
 
 const app = express();
 
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "https://heal-zone.netlify.app/", // 👈 change this
+    origin: "https://heal-zone.netlify.app/", // 🔥 change this
     credentials: true,
   })
 );
