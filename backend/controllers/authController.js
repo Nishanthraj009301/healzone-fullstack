@@ -54,9 +54,9 @@ exports.login = async (req, res) => {
 
     res.cookie("token", token, {
   httpOnly: true,
-  sameSite: "lax",
-  secure: false,     
-  path: "/",         // must match logout
+  secure: true,        // REQUIRED for HTTPS
+  sameSite: "none",    // REQUIRED for cross-origin
+  path: "/",
 });
 
     res.json({ message: "Login successful" });
