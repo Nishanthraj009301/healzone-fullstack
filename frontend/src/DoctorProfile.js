@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./DoctorProfile.css";
 import Loader from "./loader/Loader";
+import { AuthContext } from "./context/AuthContext";
+import LoginModal from "./components/Userlogin/LoginModal";
 
 export default function DoctorProfile() {
   const { id } = useParams();
@@ -15,7 +17,9 @@ export default function DoctorProfile() {
 
     async function fetchDoctor() {
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/doctors/${id}`);
+        const res = await fetch(
+          `${process.env.REACT_APP_API_URL}/api/doctors/${id}`
+        );
         if (!res.ok) throw new Error("Doctor not found");
         const data = await res.json();
         if (mounted) setDoctor(data);
@@ -82,18 +86,14 @@ function Hero({ doctor }) {
       />
       <div className="hero-text">
         <h1>{doctor.name}</h1>
-        {doctor.speciality && (
-          <p className="speciality">{doctor.speciality}</p>
-        )}
-        {doctor.focus_area && (
-          <p className="focus">{doctor.focus_area}</p>
-        )}
+        {doctor.speciality && <p className="speciality">{doctor.speciality}</p>}
+        {doctor.focus_area && <p className="focus">{doctor.focus_area}</p>}
       </div>
     </div>
   );
 }
 
-/* ================= CLINIC (ADDRESS ONLY) ================= */
+/* ================= CLINIC ================= */
 
 function Clinic({ doctor }) {
   return (
@@ -111,9 +111,7 @@ function About({ doctor }) {
   return (
     <div className="profile-section">
       <h3>About Doctor</h3>
-      <p className="description">
-        {doctor.about || "About not available"}
-      </p>
+      <p className="description">{doctor.about || "About not available"}</p>
     </div>
   );
 }
@@ -121,9 +119,7 @@ function About({ doctor }) {
 /* ================= LOCATION MAP ================= */
 
 function LocationMap({ doctor }) {
-  const hasLocation = doctor.latitude && doctor.longitude;
-
-  if (!hasLocation) return null;
+  if (!doctor.latitude || !doctor.longitude) return null;
 
   return (
     <div className="profile-section">
@@ -132,18 +128,20 @@ function LocationMap({ doctor }) {
         title="Clinic Location"
         src={`https://www.google.com/maps?q=${doctor.latitude},${doctor.longitude}&z=15&output=embed`}
         loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
       />
     </div>
   );
 }
 
-/* ================= RIGHT SIDE (UNCHANGED) ================= */
+/* ================= APPOINTMENT ================= */
 
 function Appointment({ doctor }) {
+  const { user } = useContext(AuthContext);
+
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [dayIndex, setDayIndex] = useState(0);
   const [showModal, setShowModal] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(null);
 
   const hours = (doctor.consultation_hours || []).filter(
@@ -163,6 +161,14 @@ function Appointment({ doctor }) {
     .filter(Boolean);
 
   const fee = doctor.Rokka || 0;
+
+  const handleConfirmClick = () => {
+    if (!user) {
+      setShowLogin(true);
+      return;
+    }
+    setShowModal(true);
+  };
 
   return (
     <div className="booking-sticky">
@@ -198,10 +204,19 @@ function Appointment({ doctor }) {
       <button
         className="cta"
         disabled={selectedIndex === null}
-        onClick={() => setShowModal(true)}
+        onClick={handleConfirmClick}
       >
         Confirm Booking
       </button>
+
+      <LoginModal
+        show={showLogin}
+        onClose={() => setShowLogin(false)}
+        onSuccess={() => {
+          setShowLogin(false);
+          setShowModal(true);
+        }}
+      />
 
       <BookingModal
         open={showModal}
@@ -223,66 +238,40 @@ function Appointment({ doctor }) {
   );
 }
 
-/* BookingModal + BookingSuccess remain unchanged */
-
 /* ================= BOOKING MODAL ================= */
 
 function BookingModal({ open, onClose, doctor, date, time, fee }) {
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-  });
-
   const [submitting, setSubmitting] = useState(false);
 
   if (!open) return null;
 
   const submit = async () => {
-    if (!form.fullName || !form.email || !form.phone) {
-      alert("Please fill all fields");
-      return;
-    }
-
     if (!doctor?._id) {
-      alert("Doctor ID missing. Please refresh page.");
+      alert("Doctor ID missing.");
       return;
     }
 
     if (submitting) return;
     setSubmitting(true);
 
-    if (!doctor?._id) {
-      alert("Doctor ID missing. Please refresh page.");
-      return;
-    }
-
-
     const payload = {
-      doctorId: doctor?._id || null,
-      vendorId: doctor?.vendorId || null,
+      doctorId: doctor._id,
+      vendorId: doctor.vendorId,
       bookingDate: new Date().toISOString().split("T")[0],
-
       bookingTime: time,
-      fullName: form.fullName.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
       consultationFee: Number(fee),
     };
 
-    console.log("Booking payload:", payload);
-
-
     try {
       const res = await fetch(
-  `${process.env.REACT_APP_API_URL}/api/bookings/create`,
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include", // 🔥 IMPORTANT if user must be logged in
-    body: JSON.stringify(payload),
-  }
-);
+        `${process.env.REACT_APP_API_URL}/api/bookings/create`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data = await res.json();
 
@@ -302,29 +291,8 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
   return (
     <div className="modal-backdrop">
       <div className="modal-card">
-        <h3>Book Appointment</h3>
-
-        <input
-          placeholder="Full Name"
-          value={form.fullName}
-          onChange={(e) =>
-            setForm({ ...form, fullName: e.target.value })
-          }
-        />
-        <input
-          placeholder="Email"
-          value={form.email}
-          onChange={(e) =>
-            setForm({ ...form, email: e.target.value })
-          }
-        />
-        <input
-          placeholder="Phone"
-          value={form.phone}
-          onChange={(e) =>
-            setForm({ ...form, phone: e.target.value })
-          }
-        />
+        <h3>Confirm Booking</h3>
+        <p>Consultation Fee: ₹{fee}</p>
 
         <button onClick={submit} disabled={submitting}>
           {submitting ? "Booking..." : "Book"}
@@ -345,7 +313,6 @@ function BookingSuccess({ booking, onClose }) {
       <div className="modal-card">
         <h3>Booking Confirmed 🎉</h3>
         <p><b>Reference:</b> {booking.referenceNumber}</p>
-        <p><b>Name:</b> {booking.fullName}</p>
         <p><b>Date:</b> {new Date(booking.bookingDate).toDateString()}</p>
         <p><b>Time:</b> {booking.bookingTime}</p>
         <button onClick={onClose}>Close</button>
