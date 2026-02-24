@@ -10,7 +10,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "https://heal-zone.netlify.app/", // 🔥 change this
+    origin: "https://heal-zone.netlify.app", // ✅ no trailing slash
     credentials: true,
   })
 );
