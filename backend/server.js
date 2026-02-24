@@ -17,8 +17,6 @@ const app = express();
    MIDDLEWARE
 ========================================================= */
 
-// ✅ Secure CORS (important for cookies)
-const cors = require("cors");
 
 app.use(
   cors({
