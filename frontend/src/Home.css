@@ -327,58 +327,6 @@ body {
   color: #1f2933;
 }
 
-/* ================= LOGIN MODAL ================= */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(2, 6, 23, 0.75);
-  display: grid;
-  place-items: center;
-  z-index: 100;
-}
-
-.modal {
-  background: #020617;
-  border: 1px solid #1e293b;
-  border-radius: 1rem;
-  padding: 1.8rem;
-  width: 320px;
-  position: relative;
-}
-
-.modal h2 {
-  margin-bottom: 1rem;
-}
-
-.modal input {
-  width: 100%;
-  padding: 0.6rem;
-  margin-bottom: 0.7rem;
-  background: #020617;
-  border: 1px solid #1e293b;
-  border-radius: 0.5rem;
-  color: white;
-}
-
-.modal button {
-  width: 100%;
-  padding: 0.6rem;
-  border-radius: 999px;
-  background: #2563eb;
-  color: white;
-  font-weight: 600;
-  border: none;
-}
-
-.close {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  cursor: pointer;
-  color: #94a3b8;
-}
-
 /* ================= RESPONSIVE ================= */
 
 @media (max-width: 70rem) {
@@ -520,4 +468,28 @@ body {
   font-weight: 600;
   background: #38bdf8;
   color: #020617;
+}
+
+/* ================= USER SECTION ================= */
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.user-section span {
+  font-size: 0.9rem;
+  color: #cbd5f5;
+}
+
+.user-section button {
+  background: #1e293b;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.user-section button:hover {
+  background: #334155;
 }

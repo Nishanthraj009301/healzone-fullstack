@@ -1,0 +1,196 @@
+/* ================= OVERLAY ================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.25s ease;
+}
+
+/* ================= MODAL CARD ================= */
+
+.modal-card {
+  width: 400px;
+  max-width: 92%;
+  background: #ffffff;
+  padding: 40px 32px;
+  border-radius: 20px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+/* ================= CLOSE BUTTON ================= */
+
+.close-btn {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  font-size: 18px;
+  cursor: pointer;
+  color: #94a3b8;
+  transition: 0.2s ease;
+}
+
+.close-btn:hover {
+  color: #0f172a;
+  transform: rotate(90deg);
+}
+
+/* ================= TITLE ================= */
+
+.modal-title {
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 8px;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+}
+
+.modal-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 28px;
+}
+
+/* ================= INPUTS ================= */
+
+.modal-card input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.modal-card input:focus {
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  outline: none;
+}
+
+/* ================= PRIMARY BUTTON ================= */
+
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-weight: 600;
+  font-size: 15px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.35);
+}
+
+.login-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ================= FOOTER TEXT ================= */
+
+.auth-footer {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Switch link */
+.switch-link {
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.switch-link:hover {
+  text-decoration: underline;
+  color: #1d4ed8;
+}
+
+/* ================= ERROR ================= */
+
+.error-text {
+  font-size: 13px;
+  color: #ef4444;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* OTP input styling */
+.modal-card input[type="text"] {
+  text-align: center;
+  font-size: 18px;
+  letter-spacing: 4px;
+}
+
+/* Forgot password link */
+.forgot-link {
+  text-align: right;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.forgot-link span {
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.forgot-link span:hover {
+  text-decoration: underline;
+}
+
+/* ================= ANIMATIONS ================= */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 480px) {
+  .modal-card {
+    padding: 32px 22px;
+  }
+
+  .modal-title {
+    font-size: 22px;
+  }
+}

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-
+import LoginModal from "./components/Userlogin/LoginModal";
 import "./Home.css";
 
 /* ================= ICONS ================= */
@@ -55,6 +55,44 @@ export default function Home() {
   const [showLogin, setShowLogin] = useState(false);
   const [comingSoon, setComingSoon] = useState(null);
   const [doctors, setDoctors] = useState([]);
+  const [user, setUser] = useState(null);
+
+  /* ================= CHECK LOGIN ================= */
+  useEffect(() => {
+  checkUser();
+}, []);
+
+const checkUser = async () => {
+  try {
+    const res = await fetch(
+  `${process.env.REACT_APP_API_URL}/api/auth/me`,
+  {
+    credentials: "include", // IMPORTANT for cookies
+  }
+);
+
+    if (res.ok) {
+      const data = await res.json();
+      setUser(data);
+    } else {
+      setUser(null);
+    }
+  } catch (err) {
+    setUser(null);
+  }
+};
+
+  const handleLogout = async () => {
+  await fetch(
+    `${process.env.REACT_APP_API_URL}/api/auth/logout`,
+    {
+      method: "POST",
+      credentials: "include",
+    }
+  );
+
+  setUser(null);
+};
 
   const navigateWithLoader = (path) => {
     setTimeout(() => {
@@ -66,11 +104,13 @@ export default function Home() {
   useEffect(() => {
     async function fetchDoctors() {
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL}/api/doctors`);
+        const res = await fetch(
+          `${process.env.REACT_APP_API_URL}/api/doctors`
+        );
         const data = await res.json();
 
         if (res.ok) {
-          setDoctors(data.slice(0, 8)); // show 8 doctors
+          setDoctors(data.slice(0, 8));
         }
       } catch (err) {
         console.error("Error fetching doctors:", err);
@@ -120,9 +160,22 @@ export default function Home() {
                 )}
               </div>
 
-              <button className="login" onClick={() => setShowLogin(true)}>
-                Login
-              </button>
+              {/* ===== LOGIN / USER DISPLAY ===== */}
+              {user ? (
+  <div className="user-avatar-wrapper">
+    <div className="user-avatar">
+      {user.name?.charAt(0).toUpperCase()}
+    </div>
+    <button onClick={handleLogout}>Logout</button>
+  </div>
+) : (
+  <button
+    className="login"
+    onClick={() => setShowLogin(true)}
+  >
+    Login
+  </button>
+)}
             </nav>
           </div>
         </div>
@@ -139,7 +192,10 @@ export default function Home() {
           all in one place.
         </p>
 
-        <button className="cta" onClick={() => navigateWithLoader("/doctors")}>
+        <button
+          className="cta"
+          onClick={() => navigateWithLoader("/doctors")}
+        >
           Get Started
         </button>
 
@@ -199,42 +255,41 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ================= DOCTORS SECTION ================= */}
-<section className="hz-recommended">
-  <h2>Recommendations</h2>
+      {/* ================= RECOMMENDED DOCTORS ================= */}
+      <section className="hz-recommended">
+        <h2>Recommendations</h2>
+        <div className="slider-wrapper">
+          <div className="slider-track">
+            {[...doctors, ...doctors].map((doc, index) => (
+              <div
+                key={`${doc.id}-${index}`}
+                className="doctor-simple-card"
+                onClick={() => navigate(`/doctor/${doc.id}`)}
+              >
+                <div className="doctor-image-wrapper">
+                  <img
+                    src={doc.profile_url}
+                    alt={doc.name}
+                    className="doctor-image"
+                  />
+                </div>
 
-  <div className="slider-wrapper">
-    <div className="slider-track">
-      {[...doctors, ...doctors].map((doc, index) => (
-        <div
-          key={`${doc.id}-${index}`}
-          className="doctor-simple-card"
-          onClick={() => navigate(`/doctor/${doc.id}`)}
-        >
-          <div className="doctor-image-wrapper">
-            <img
-              src={doc.profile_url}
-              alt={doc.name}
-              className="doctor-image"
-            />
+                <h4>{doc.name}</h4>
+
+                <p className="speciality">
+                  {doc.speciality || doc.focus_area}
+                </p>
+
+                <p className="consultation">
+                  ₹{doc.Rokka || "--"} Consultation
+                </p>
+
+                <button>View Profile</button>
+              </div>
+            ))}
           </div>
-
-          <h4>{doc.name}</h4>
-
-          <p className="speciality">
-            {doc.speciality || doc.focus_area}
-          </p>
-
-          <p className="consultation">
-            ₹{doc.Rokka || "--"} Consultation
-          </p>
-
-          <button>View Profile</button>
         </div>
-      ))}
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* ================= COMING SOON MODAL ================= */}
       {comingSoon && (
@@ -243,14 +298,12 @@ export default function Home() {
             <span className="close" onClick={() => setComingSoon(null)}>
               ✕
             </span>
-
             <h2>{comingSoon}</h2>
             <p>
               This service is currently under development.
               <br />
               We’re working hard to bring it to you soon 🚀
             </p>
-
             <button onClick={() => setComingSoon(null)}>
               Okay, got it
             </button>
@@ -258,24 +311,15 @@ export default function Home() {
         </div>
       )}
 
-      {/* ================= LOGIN MODAL ================= */}
-      {showLogin && (
-        <div className="modal-overlay" onClick={() => setShowLogin(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <span className="close" onClick={() => setShowLogin(false)}>
-              ✕
-            </span>
-
-            <h2>Login</h2>
-            <input type="text" placeholder="Username" />
-            <input type="password" placeholder="Password" />
-
-            <button onClick={() => navigateWithLoader("/login")}>
-              Login
-            </button>
-          </div>
-        </div>
-      )}
+      {/* ================= LOGIN COMPONENT ================= */}
+      <LoginModal
+  show={showLogin}
+  onClose={() => setShowLogin(false)}
+  onSuccess={async () => {
+    await checkUser();
+    setShowLogin(false);
+  }}
+/>
     </div>
   );
 }

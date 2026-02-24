@@ -275,13 +275,14 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
 
     try {
       const res = await fetch(
-        "http://localhost:5000/api/bookings/create",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+  `${process.env.REACT_APP_API_URL}/api/bookings/create`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // 🔥 IMPORTANT if user must be logged in
+    body: JSON.stringify(payload),
+  }
+);
 
       const data = await res.json();
 
