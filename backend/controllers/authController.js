@@ -68,11 +68,13 @@ exports.login = async (req, res) => {
 
 /* ================= LOGOUT ================= */
 exports.logout = (req, res) => {
+  const isProduction = process.env.NODE_ENV === "production";
+
   res.clearCookie("token", {
     httpOnly: true,
-    sameSite: "lax",
-    secure: false,
-    path: "/",          // 🔥 MUST MATCH
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/", // must match login
   });
 
   return res.status(200).json({
