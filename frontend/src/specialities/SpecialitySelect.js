@@ -1,7 +1,6 @@
 import { useNavigate, Link, useLocation } from "react-router-dom";
-import { useMemo, useContext } from "react";
+import { useMemo } from "react";
 import "./SpecialitySelect.css";
-import { LocationContext } from "../context/LocationContext";
 
 const SPECIALITIES = [
   {
@@ -22,37 +21,31 @@ export default function SpecialitySelect() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Proper hook usage INSIDE component
-  const { selectedCountry, selectedCity } = useContext(LocationContext);
-
-  // Optional: also read from URL (fallback)
   const queryParams = useMemo(() => {
-  const params = new URLSearchParams(location.search);
-  return {
-    country: params.get("country") || "",
-    city: params.get("city") || "",
-    lat: params.get("lat") || "",
-    lng: params.get("lng") || "",
-  };
-}, [location.search]);
-
-const { country, city, lat, lng } = queryParams;
+    const params = new URLSearchParams(location.search);
+    return {
+      country: params.get("country") || "",
+      city: params.get("city") || "",
+      lat: params.get("lat") || "",
+      lng: params.get("lng") || "",
+    };
+  }, [location.search]);
 
   const handleSpecialityClick = (speciality) => {
     let url = `/doctors?speciality=${encodeURIComponent(
-  speciality
-)}&country=${encodeURIComponent(country)}&city=${encodeURIComponent(city)}`;
+      speciality
+    )}&country=${encodeURIComponent(queryParams.country)}&city=${encodeURIComponent(queryParams.city)}`;
 
-if (queryParams.lat && queryParams.lng) {
-  url += `&lat=${queryParams.lat}&lng=${queryParams.lng}`;
-}
+    if (queryParams.lat && queryParams.lng) {
+      url += `&lat=${queryParams.lat}&lng=${queryParams.lng}`;
+    }
 
-navigate(url);
+    navigate(url);
   };
 
   return (
     <div className="speciality-page">
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       <div className="speciality-header">
         <Link to="/">
           <img
@@ -64,8 +57,10 @@ navigate(url);
       </div>
 
       <h2>
-        {country
-          ? `Select a Speciality in ${country}${city ? ` - ${city}` : ""}`
+        {queryParams.country
+          ? `Select a Speciality in ${queryParams.country}${
+              queryParams.city ? ` - ${queryParams.city}` : ""
+            }`
           : "Select a Speciality"}
       </h2>
 
