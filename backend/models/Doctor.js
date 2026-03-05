@@ -66,13 +66,29 @@ const doctorSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed
     },
 
+    /* ================= GEO FIELDS ================= */
+
     latitude: Number,
-    longitude: Number
+    longitude: Number,
+
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point"
+      },
+      coordinates: {
+        type: [Number], // [lng, lat]
+      }
+    }
   },
   {
-    strict: false,   // 🔥 still allows CSV extra fields
+    strict: false,
     timestamps: true
   }
 );
+
+/* 🔥 IMPORTANT: Add Geo Index */
+doctorSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("Doctor", doctorSchema);

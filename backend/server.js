@@ -14,16 +14,24 @@ const Doctor = require("./models/Doctor");
 const app = express();
 
 /* =========================================================
+   🔥 TRUST PROXY (IMPORTANT FOR SECURE COOKIES IN PROD)
+========================================================= */
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
+/* =========================================================
    MIDDLEWARE
 ========================================================= */
 
+const allowedOrigins = [
+  "http://localhost:3000",           // local development
+  "https://heal-zone.netlify.app",   // production frontend
+];
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",           // local development
-      "https://heal-zone.netlify.app",   // 🔥 production frontend
-    ],
+    origin: true,
     credentials: true,
   })
 );
@@ -43,6 +51,23 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
+function getDistanceInKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Earth radius in KM
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
 /* =========================================================
    ROUTES
 ========================================================= */
@@ -51,6 +76,20 @@ app.use("/api/auth", authRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
+
+/* =========================================================
+   AUTOMATION API (FOR BOOKING AUTOMATION TEAM)
+========================================================= */
+
+app.post("/api/automation", (req, res) => {
+  console.log("🤖 Automation Request Received:");
+  console.log(JSON.stringify(req.body, null, 2));
+
+  res.json({
+    success: true,
+    message: "Automation payload received",
+  });
+});
 
 /* =========================================================
    HEALTH CHECK
@@ -106,44 +145,147 @@ function normalizeConsultationHours(doc) {
 }
 
 /* =========================================================
-   GET ALL DOCTORS
+   GET DOCTORS (STRICT FILTER + 10KM PRIORITY + A-Z SORT)
 ========================================================= */
 
 app.get("/api/doctors", async (req, res, next) => {
+  console.log("🔥 NEW VERSION RUNNING");
   try {
-    const rows = await Doctor.find({
+    const { speciality, country, city, lat, lng, search } = req.query;
+
+    let filter = {
       name: { $exists: true, $ne: "" },
-    }).sort({ name: 1 });
+    };
 
-    const doctorMap = {};
+    // =====================================================
+// ✅ Speciality Filter
+// =====================================================
+if (speciality) {
+  const normalized = speciality.trim();
 
-    rows.forEach((d) => {
-      const key = d.name.trim().toLowerCase();
+  filter.$or = [
+    { speciality: { $regex: normalized, $options: "i" } },
+    { focus_area: { $regex: `^${normalized}`, $options: "i" } }
+  ];
+}
 
-      if (!doctorMap[key]) {
-        doctorMap[key] = {
-          id: d._id.toString(),
-          name: d.name,
-          speciality:
-            d.focus_area || d.speciality || "Specialization not listed",
-          hospital: d.clinic_name || "",
-          address1: d.address1 || "",
-          city: d.city || "",
-          zip_code: d.zip_code || "",
-          latitude: d.latitude || null,
-          longitude: d.longitude || null,
-          Rokka: d.Rokka,
-          experience: d.experience || "",
-          about: d.discription || "",
-          profile_url:
-            d.profile_url && d.profile_url.trim() !== ""
-              ? d.profile_url
-              : null,
-        };
-      }
-    });
+// =====================================================
+// ✅ Global Search (Name + Speciality + Focus Area)
+// =====================================================
+if (search) {
+  const q = search.trim();
 
-    res.json(Object.values(doctorMap));
+  const searchCondition = {
+    $or: [
+      { name: { $regex: q, $options: "i" } },
+      { speciality: { $regex: q, $options: "i" } },
+      { focus_area: { $regex: q, $options: "i" } }
+    ]
+  };
+
+  // If speciality already exists, combine both
+  if (filter.$or) {
+    filter = {
+      ...filter,
+      $and: [
+        { $or: filter.$or },
+        searchCondition
+      ]
+    };
+    delete filter.$or;
+  } else {
+    Object.assign(filter, searchCondition);
+  }
+}
+    // =====================================================
+// ✅ Country Filter
+// =====================================================
+if (country) {
+  filter.country = { $regex: country, $options: "i" };
+}
+
+// =====================================================
+// ✅ City Filter
+// =====================================================
+if (city) {
+  filter.$or = [
+    { city: { $regex: city, $options: "i" } },
+    { state: { $regex: city, $options: "i" } }
+  ];
+}
+
+    // =====================================================
+    // FETCH DOCTORS (Single Query Only)
+    // =====================================================
+
+    console.log("Applied Filter:", filter);
+    let rows = await Doctor.find(filter)
+      .collation({ locale: "en", strength: 2 })
+      .lean();
+
+    // =====================================================
+    // ✅ IF LOCATION PROVIDED → PRIORITIZE 10KM
+    // =====================================================
+    if (lat && lng) {
+      const userLat = parseFloat(lat);
+      const userLng = parseFloat(lng);
+
+      rows = rows.map((doc) => {
+        let distance = Infinity;
+
+        if (doc.location && doc.location.coordinates) {
+          const [docLng, docLat] = doc.location.coordinates;
+
+          distance = getDistanceInKm(
+            userLat,
+            userLng,
+            docLat,
+            docLng
+          );
+        }
+
+        return { ...doc, distance };
+      });
+
+      // Sort: within 10km first, then alphabetical
+      rows.sort((a, b) => {
+        const aInRange = a.distance <= 10;
+        const bInRange = b.distance <= 10;
+
+        if (aInRange && !bInRange) return -1;
+        if (!aInRange && bInRange) return 1;
+
+        return a.name.localeCompare(b.name);
+      });
+    } else {
+      // No location → just alphabetical
+      rows.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    // =====================================================
+    // MAP RESPONSE (Prevent duplicate names)
+    // =====================================================
+    res.json(
+  rows.map((d) => ({
+    id: d._id.toString(),
+    name: d.name,
+    speciality:
+      d.focus_area || d.speciality || "Specialization not listed",
+    hospital: d.clinic_name || "",
+    address1: d.address1 || "",
+    city: d.city || "",
+    zip_code: d.zip_code || "",
+    latitude: d.latitude || null,
+    longitude: d.longitude || null,
+    Rokka: d.Rokka,
+    experience: d.experience || "",
+    about: d.discription || "",
+    profile_url:
+      d.profile_url && d.profile_url.trim() !== ""
+        ? d.profile_url
+        : null,
+  }))
+);
   } catch (err) {
     next(err);
   }
@@ -196,7 +338,8 @@ app.get("/api/doctors/:id", async (req, res, next) => {
 ========================================================= */
 
 app.use((err, req, res, next) => {
-  console.error("🔥 GLOBAL ERROR:", err);
+  console.error("🔥 GLOBAL ERROR:", err.message);
+
   res.status(500).json({
     message: "Something went wrong",
     error:
