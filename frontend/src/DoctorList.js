@@ -1,15 +1,10 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import "./DoctorList.css";
 import Loader from "./loader/Loader";
 
 /* ================= HELPERS ================= */
 
-function normalize(value = "") {
-  return value.toLowerCase().replace(/\s+/g, "");
-}
-
-/* Consultation text */
 function renderConsultationText(Rokka) {
   if (Rokka === undefined || Rokka === null || Rokka === "") return null;
   const num = Number(Rokka);
@@ -26,62 +21,80 @@ export default function DoctorList() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [appliedQuery, setAppliedQuery] = useState("");
 
   /* ================= FETCH ================= */
+
+useEffect(() => {
+  const params = new URLSearchParams();
+
+  const speciality = searchParams.get("speciality");
+  const country = searchParams.get("country");
+  const city = searchParams.get("city");
+  const lat = searchParams.get("lat");
+  const lng = searchParams.get("lng");
+  const search = searchParams.get("search");
+
+  if (speciality) params.append("speciality", speciality);
+  if (country) params.append("country", country);
+  if (city) params.append("city", city);
+  if (lat) params.append("lat", lat);
+  if (lng) params.append("lng", lng);
+  if (search) params.append("search", search);
+  
+
+  const url = `${process.env.REACT_APP_API_URL}/api/doctors?${params.toString()}`;
+
+  console.log("Fetching doctors from:", url); // 🔥 DEBUG
+
+  setLoading(true);
+
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Doctors response:", data); // 🔥 DEBUG
+      setDoctors(Array.isArray(data) ? data : []);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error("Fetch error:", err);
+      setLoading(false);
+    });
+
+}, [searchParams]);
+
+  /* ================= SYNC SEARCH INPUT ================= */
+
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_API_URL}/api/doctors`)
-      .then((res) => res.json())
-      .then((data) => {
-        setDoctors(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+    const search = searchParams.get("search") || "";
+    setSearchText(search);
+  }, [searchParams]);
 
-  /* ================= FILTER ================= */
-  const filteredDoctors = useMemo(() => {
-    let result = doctors;
+  /* ================= SEARCH HANDLER ================= */
 
-    /* 1️⃣ Filter by speciality (normalized) */
-    if (selectedSpeciality) {
-      const selected = normalize(selectedSpeciality);
+  const handleSearch = () => {
+    const params = new URLSearchParams(searchParams);
 
-      result = result.filter((doc) => {
-        const speciality = doc.speciality
-          ? normalize(doc.speciality)
-          : "";
-
-        const focusArea = doc.focus_area
-          ? normalize(doc.focus_area)
-          : "";
-
-        return speciality === selected || focusArea === selected;
-      });
-
+    if (searchText.trim()) {
+      params.set("search", searchText.trim());
+    } else {
+      params.delete("search");
     }
 
-    /* 2️⃣ Apply search inside that speciality */
-    if (appliedQuery.trim()) {
-      const q = appliedQuery.toLowerCase();
-      result = result.filter(
-        (doc) =>
-          doc.name?.toLowerCase().includes(q) ||
-          doc.speciality?.toLowerCase().includes(q)
-      );
-    }
-
-    return result;
-  }, [doctors, appliedQuery, selectedSpeciality]);
+    navigate(`/doctors?${params.toString()}`);
+  };
 
   /* ================= LOADING ================= */
+
   if (loading) return <Loader />;
 
   return (
     <div className="doctor-page">
+
       {/* ================= HEADER ================= */}
+
       <header className="doctor-header">
         <div className="doctor-header-inner">
+
           <button className="logo-btn" onClick={() => navigate("/")}>
             <img src="/healonelogo.png" alt="Healzone" />
           </button>
@@ -89,37 +102,40 @@ export default function DoctorList() {
           <div className="search-box">
             <input
               type="text"
-              placeholder="Search doctor"
+              placeholder="Search doctor or speciality"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  setAppliedQuery(searchText.trim());
+                  handleSearch();
                 }
               }}
             />
-            <button onClick={() => setAppliedQuery(searchText.trim())}>
+
+            <button onClick={handleSearch}>
               Search
             </button>
           </div>
+
         </div>
       </header>
 
       {/* ================= CONTENT ================= */}
+
       <main className="doctor-shell">
-        {/* 🔹 Selected speciality title */}
+
         {selectedSpeciality && (
           <h3 style={{ marginBottom: "20px" }}>
-            Showing doctors for{" "}
-            <b>{selectedSpeciality}</b>
+            Showing doctors for <b>{selectedSpeciality}</b>
           </h3>
         )}
 
-        {filteredDoctors.length === 0 ? (
+        {doctors.length === 0 ? (
           <div className="empty-state">No doctors found</div>
         ) : (
           <div className="doctor-card-grid">
-            {filteredDoctors.map((doc) => {
+
+            {doctors.map((doc) => {
               const id = doc._id || doc.id;
               const consultationText = renderConsultationText(doc.Rokka);
 
@@ -129,7 +145,9 @@ export default function DoctorList() {
                   className="doctor-card"
                   onClick={() => navigate(`/doctor/${id}`)}
                 >
+
                   {/* AVATAR */}
+
                   <div className="doctor-avatar">
                     {doc.profile_url ? (
                       <img src={doc.profile_url} alt={doc.name} />
@@ -146,7 +164,9 @@ export default function DoctorList() {
                   </div>
 
                   {/* INFO */}
+
                   <h3>{doc.name}</h3>
+
                   <p className="speciality">
                     {doc.speciality || "Speciality not listed"}
                   </p>
@@ -164,12 +184,16 @@ export default function DoctorList() {
                   >
                     View Profile
                   </button>
+
                 </div>
               );
             })}
+
           </div>
         )}
+
       </main>
+
     </div>
   );
 }

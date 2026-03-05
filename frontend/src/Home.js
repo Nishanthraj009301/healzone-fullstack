@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import LoginModal from "./components/Userlogin/LoginModal";
 import "./Home.css";
+import { useContext } from "react";
+import { LocationContext } from "./context/LocationContext";
 
 /* ================= ICONS ================= */
 const Icon = ({ type }) => {
@@ -56,11 +58,124 @@ export default function Home() {
   const [comingSoon, setComingSoon] = useState(null);
   const [doctors, setDoctors] = useState([]);
   const [user, setUser] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+const [searchQuery, setSearchQuery] = useState("");
+
+
+
+const {
+  selectedCountry,
+  setSelectedCountry,
+  selectedCity,
+  setSelectedCity,
+} = useContext(LocationContext);
+const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+
+const [filteredResults, setFilteredResults] = useState([]);
+const [showSuggestions, setShowSuggestions] = useState(false);
+// 🔥 Store GPS coordinates
+const [userLat, setUserLat] = useState(null);
+const [userLng, setUserLng] = useState(null);
+
+const detectLocation = () => {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      setUserLat(lat);
+      setUserLng(lng);
+
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+          {
+            headers: {
+              "Accept": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Reverse API failed");
+        }
+
+        const data = await response.json();
+
+        const country = data?.address?.country;
+        const city =
+          data?.address?.city ||
+          data?.address?.town ||
+          data?.address?.village ||
+          data?.address?.state;
+
+        if (country) {
+          setSelectedCountry(country);
+        }
+
+        if (city) {
+          setSelectedCity(city);
+        } else {
+          setSelectedCity("Current Location");
+        }
+
+      } catch (error) {
+        console.error("Reverse geocoding failed:", error);
+
+        // fallback if reverse fails
+        setSelectedCountry("Detected Location");
+        setSelectedCity("Current Location");
+      }
+
+      setShowLocationDropdown(false);
+    },
+    (error) => {
+      console.error("Geolocation error:", error);
+      alert("Unable to retrieve your location");
+    }
+  );
+};
+
+const medicalFields = [
+  "Ayurveda",
+  "Dentist",
+  "Dermatologist",
+  "Cardiologist",
+  "Neurologist",
+  "Orthopedic",
+  "Pediatrician",
+  "Psychiatrist",
+  "Gynecologist",
+  "ENT Specialist",
+  "Diabetologist",
+  "Oncologist",
+  "Urologist",
+  "Nephrologist",
+  "Dietician",
+  "Physiotherapist",
+  "General Physician",
+  "Pulmonologist",
+  "Radiologist",
+  "Endocrinologist",
+  "Gastroenterologist",
+  "Dental Implants",
+  "Dental Cleaning",
+  "Depression Therapy",
+  "De-addiction Therapy"
+];
+
 
   /* ================= CHECK LOGIN ================= */
   useEffect(() => {
   checkUser();
 }, []);
+
 
 const checkUser = async () => {
   try {
@@ -161,12 +276,36 @@ const checkUser = async () => {
               </div>
 
               {/* ===== LOGIN / USER DISPLAY ===== */}
-              {user ? (
-  <div className="user-avatar-wrapper">
-    <div className="user-avatar">
+{user ? (
+  <div className="user-menu">
+    <div
+      className="user-avatar"
+      onClick={() => setShowUserMenu(!showUserMenu)}
+    >
       {user.name?.charAt(0).toUpperCase()}
     </div>
-    <button onClick={handleLogout}>Logout</button>
+
+    {showUserMenu && (
+      <div className="user-dropdown">
+        <button
+          onClick={() => {
+            navigate("/dashboard");
+            setShowUserMenu(false);
+          }}
+        >
+          Dashboard
+        </button>
+
+        <button
+          onClick={() => {
+            handleLogout();
+            setShowUserMenu(false);
+          }}
+        >
+          Logout
+        </button>
+      </div>
+    )}
   </div>
 ) : (
   <button
@@ -182,25 +321,167 @@ const checkUser = async () => {
       </header>
 
       {/* ================= HERO ================= */}
-      <section className="hz-hero">
-        <h1>
-          One Platform for <span>Health & Wellness</span>
-        </h1>
+<section className="hz-hero">
+  <h1>
+    One Platform for <span>Health & Wellness</span>
+  </h1>
 
-        <p>
-          Doctors, therapy, fitness, wellness, and personal care —
-          all in one place.
-        </p>
+  <p>
+    Doctors, therapy, fitness, wellness, and personal care —
+    all in one place.
+  </p>
 
-        <button
-          className="cta"
-          onClick={() => navigateWithLoader("/doctors")}
+  {/* ===== HERO SEARCH ===== */}
+  <div className="hero-search-container">
+    <div className="hero-search">
+
+      {/* Location */}
+      <div className="location-section">
+  <div
+    className="location-display"
+    onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+  >
+    📍 {selectedCity || selectedCountry}
+  </div>
+
+  {showLocationDropdown && (
+    <div className="location-dropdown">
+
+      <div
+  className="dropdown-item"
+  onMouseDown={detectLocation}
+>
+        📡 Use Current Location
+      </div>
+
+      <div className="dropdown-divider"></div>
+
+      <div
+        className="dropdown-item"
+        onClick={() => {
+          setSelectedCountry("United States");
+          setSelectedCity("");
+          setShowLocationDropdown(false);
+        }}
+      >
+        🇺🇸 United States
+      </div>
+
+      <div
+        className="dropdown-item"
+        onClick={() => {
+          setSelectedCountry("India");
+          setSelectedCity("");
+          setShowLocationDropdown(false);
+        }}
+      >
+        🇮🇳 India
+      </div>
+
+      <div
+        className="dropdown-item"
+        onClick={() => {
+          setSelectedCountry("Malaysia");
+          setSelectedCity("");
+          setShowLocationDropdown(false);
+        }}
+      >
+        🇲🇾 Malaysia
+      </div>
+
+    </div>
+  )}
+</div>
+
+      <div className="divider"></div>
+
+      {/* Search Input */}
+      <div className="search-section">
+  <input
+    type="text"
+    value={searchQuery}
+    onChange={(e) => {
+      const value = e.target.value;
+      setSearchQuery(value);
+
+      if (value.trim().length > 0) {
+        const matches = medicalFields.filter((item) =>
+          item.toLowerCase().includes(value.toLowerCase())
+        );
+
+        setFilteredResults(matches);
+        setShowSuggestions(true);
+      } else {
+        setShowSuggestions(false);
+      }
+    }}
+    onFocus={() => searchQuery && setShowSuggestions(true)}
+    placeholder="Search doctors, clinics, services..."
+  />
+
+  {showSuggestions && filteredResults.length > 0 && (
+    <div className="suggestions-dropdown">
+      {filteredResults.map((item, index) => (
+        <div
+          key={index}
+          className="suggestion-item"
+          onClick={() => {
+            setSearchQuery(item);
+            setShowSuggestions(false);
+          }}
         >
-          Get Started
-        </button>
+          {item}
+        </div>
+      ))}
+    </div>
+  )}
+</div>
 
-        <small>or explore services below</small>
-      </section>
+      {/* Search Button */}
+<button
+  className="search-button"
+  onClick={() => {
+
+    /* NEW: if no speciality but location selected → show specialities */
+    if (!searchQuery.trim() && (selectedCountry || selectedCity || (userLat && userLng))) {
+      navigate("/specialities");
+      return;
+    }
+
+    let url = "/doctors?";
+
+    /* If user typed speciality */
+    if (searchQuery.trim()) {
+      url += `speciality=${encodeURIComponent(searchQuery)}`;
+    } else {
+      /* If no search text → use location filters */
+
+      if (selectedCountry) {
+        url += `country=${encodeURIComponent(selectedCountry)}&`;
+      }
+
+      if (
+        selectedCity &&
+        selectedCity !== "Current Location" &&
+        selectedCity !== "Karnataka"
+      ) {
+        url += `city=${encodeURIComponent(selectedCity)}&`;
+      }
+
+      if (userLat && userLng) {
+        url += `lat=${userLat}&lng=${userLng}&`;
+      }
+    }
+
+    navigate(url);
+  }}
+>
+  Search
+</button>
+
+    </div>
+  </div>
+</section>
 
       {/* ================= SERVICES ================= */}
       <section className="hz-services">
@@ -323,3 +604,4 @@ const checkUser = async () => {
     </div>
   );
 }
+

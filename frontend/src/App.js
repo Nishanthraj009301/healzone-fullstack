@@ -1,5 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+import { LocationProvider } from "./context/LocationContext";
+import { AuthProvider } from "./context/AuthContext";
 
 // ================= PAGES =================
 import Home from "./Home";
@@ -17,6 +21,15 @@ import AdminVendors from "./admin/AdminVendors";
 import Loader from "./loader/Loader";
 import Footer from "./components/Footer";
 
+// ================= Password Reset =================
+import ResetPassword from "./ResetPassword";
+
+// ================= User Dashboard =================
+import UserDashboard from "./pages/UserDashboard";
+
+// ================= Edit Profile =================
+import EditProfile from "./pages/EditProfile/EditProfile";
+
 function App() {
   const [loading, setLoading] = useState(true);
 
@@ -28,69 +41,61 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 🔐 GLOBAL LOADER
   if (loading) {
     return <Loader />;
   }
 
   return (
-    <BrowserRouter>
-      {/* Main layout wrapper */}
-      <div style={{ 
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column"
-      }}>
-        
-        {/* Page Content */}
-        <div style={{ flex: 1 }}>
-          <Routes>
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
+      <AuthProvider>
+        <BrowserRouter>
+          <LocationProvider>
+            <div
+              style={{
+                minHeight: "100vh",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/about" element={<AboutUs />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/specialities" element={<SpecialitySelect />} />
+                  <Route path="/doctors" element={<DoctorList />} />
+                  <Route path="/doctor/:id" element={<DoctorProfile />} />
+                  <Route path="/reset-password/:token" element={<ResetPassword />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route path="/admin/vendors" element={<AdminVendors />} />
+                  <Route path="/dashboard" element={<UserDashboard />} />
+                  <Route path="/profile/edit" element={<EditProfile />} />
+                  <Route
+                    path="*"
+                    element={
+                      <div
+                        style={{
+                          minHeight: "100vh",
+                          display: "grid",
+                          placeItems: "center",
+                          background: "#020617",
+                          color: "#94a3b8",
+                          fontSize: "14px",
+                        }}
+                      >
+                        Page not found
+                      </div>
+                    }
+                  />
+                </Routes>
+              </div>
 
-            {/* ================= LANDING ================= */}
-            <Route path="/" element={<Home />} />
-
-            {/* ================= INFO ================= */}
-            <Route path="/about" element={<AboutUs />} />
-
-            {/* ================= VENDOR REGISTER ================= */}
-            <Route path="/register" element={<Register />} />
-
-            {/* ================= FIND A DOCTOR FLOW ================= */}
-            <Route path="/specialities" element={<SpecialitySelect />} />
-            <Route path="/doctors" element={<DoctorList />} />
-            <Route path="/doctor/:id" element={<DoctorProfile />} />
-
-            {/* ================= ADMIN ================= */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/vendors" element={<AdminVendors />} />
-
-            {/* ================= FALLBACK ================= */}
-            <Route
-              path="*"
-              element={
-                <div
-                  style={{
-                    minHeight: "100vh",
-                    display: "grid",
-                    placeItems: "center",
-                    background: "#020617",
-                    color: "#94a3b8",
-                    fontSize: "14px",
-                  }}
-                >
-                  Page not found
-                </div>
-              }
-            />
-
-          </Routes>
-        </div>
-
-        {/* 🔥 Global Footer (Appears Everywhere) */}
-        <Footer />
-
-      </div>
-    </BrowserRouter>
+              <Footer />
+            </div>
+          </LocationProvider>
+        </BrowserRouter>
+      </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 

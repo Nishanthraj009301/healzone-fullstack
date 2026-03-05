@@ -1,0 +1,57 @@
+.dashboard-container{
+  padding:40px;
+  max-width:1100px;
+  margin:auto;
+  color:white; /* page title */
+}
+
+.dashboard-title{
+  font-size:32px;
+  font-weight:600;
+  margin-bottom:30px;
+}
+
+/* CARD STYLE */
+
+.dashboard-card{
+  background:white;
+  padding:25px;
+  border-radius:12px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.15);
+  margin-bottom:30px;
+  color:#111;   /* 🔥 IMPORTANT FIX */
+}
+
+.dashboard-card h3{
+  color:#111;
+  margin-bottom:15px;
+}
+
+.dashboard-card p{
+  color:#333;
+}
+
+.user-info p{
+  margin:8px 0;
+}
+
+.edit-btn{
+  margin-top:12px;
+  padding:10px 18px;
+  border:none;
+  background:#2563eb;
+  color:white;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.edit-btn:hover{
+  background:#1d4ed8;
+}
+
+.appointment-card{
+  border:1px solid #eee;
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:10px;
+}

@@ -6,37 +6,78 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔥 Runs when app loads (important for cookie login)
-  useEffect(() => {
-  const checkAuth = async () => {
-    try {
-      const res = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/auth/me`,
-        {
-          credentials: "include", // 🔥 important for cookies
-        }
-      );
+  const API_URL = process.env.REACT_APP_API_URL;
 
-      if (!res.ok) {
+  /* ================= CHECK AUTH ================= */
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!API_URL) {
+        console.error("REACT_APP_API_URL is not defined");
         setLoading(false);
         return;
       }
 
-      const data = await res.json();
-      setUser(data.user || null);
+      try {
+        const res = await fetch(`${API_URL}/api/auth/me`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          setUser(null);
+        } else {
+          const data = await res.json();
+
+          console.log("Auth /me response:", data);
+
+          if (data.user) {
+            const normalizedUser = {
+              ...data.user,
+              mobileNumber:
+                data.user.mobileNumber ||
+                data.user.phone ||
+                data.user.mobile ||
+                "",
+            };
+
+            setUser(normalizedUser);
+          } else {
+            setUser(null);
+          }
+        }
+      } catch (error) {
+        console.log("Auth check failed:", error.message);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [API_URL]);
+
+  /* ================= LOGOUT ================= */
+
+  const logout = async () => {
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
     } catch (error) {
-      console.log("Auth check failed");
+      console.log("Logout failed:", error.message);
     } finally {
-      setLoading(false);
+      setUser(null);
     }
   };
 
-  checkAuth();
-}, []);
-
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
-      {children}
+    <AuthContext.Provider value={{ user, setUser, loading, logout }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 }

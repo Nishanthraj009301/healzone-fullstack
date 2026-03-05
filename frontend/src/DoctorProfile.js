@@ -4,6 +4,7 @@ import "./DoctorProfile.css";
 import Loader from "./loader/Loader";
 import { AuthContext } from "./context/AuthContext";
 import LoginModal from "./components/Userlogin/LoginModal";
+import { initGoogleApi, GoogleCalendar } from "./utils/googleCalendar";
 
 export default function DoctorProfile() {
   const { id } = useParams();
@@ -162,6 +163,30 @@ function Appointment({ doctor }) {
 
   const fee = doctor.Rokka || 0;
 
+  function getNextDate(dayName) {
+  const daysList = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  const today = new Date();
+  const todayIndex = today.getDay();
+  const targetIndex = daysList.indexOf(dayName);
+
+  let diff = targetIndex - todayIndex;
+  if (diff <= 0) diff += 7;
+
+  const nextDate = new Date(today);
+  nextDate.setDate(today.getDate() + diff);
+
+  return nextDate.toISOString().split("T")[0];
+}
+
   const handleConfirmClick = () => {
     if (!user) {
       setShowLogin(true);
@@ -221,7 +246,7 @@ function Appointment({ doctor }) {
       <BookingModal
         open={showModal}
         doctor={doctor}
-        date={selectedDay}
+        date={getNextDate(selectedDay)}
         time={slots[selectedIndex]}
         fee={fee}
         onClose={(booking) => {
@@ -241,6 +266,7 @@ function Appointment({ doctor }) {
 /* ================= BOOKING MODAL ================= */
 
 function BookingModal({ open, onClose, doctor, date, time, fee }) {
+  const { googleAccessToken, user } = useContext(AuthContext);
   const [submitting, setSubmitting] = useState(false);
 
   if (!open) return null;
@@ -257,7 +283,7 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
     const payload = {
       doctorId: doctor._id,
       vendorId: doctor.vendorId,
-      bookingDate: new Date().toISOString().split("T")[0],
+      bookingDate: date,
       bookingTime: time,
       consultationFee: Number(fee),
     };
@@ -279,6 +305,48 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
         alert(data.message || "Booking failed");
         return;
       }
+      console.log("User object:", user);
+
+      /* ✅ SEND DATA TO AUTOMATION API */
+      const automationPayload = {
+        doctorList: [
+          {
+            location: doctor.city || "",
+            speciality: doctor.speciality || "",
+            doctorName: doctor.name || "",
+            dateTime: `${date} ${time}`,
+          },
+        ],
+        patientList: [
+          {
+            name: user?.name || "",
+            mobileNumber: user?.mobileNumber || "",
+            emailId: user?.email || "",
+          },
+        ],
+      };
+
+      console.log("Automation Payload:", automationPayload);
+
+      await fetch(`${process.env.REACT_APP_API_URL}/api/automation`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(automationPayload),
+      });
+
+      // ✅ Google Calendar integration
+      if (googleAccessToken) {
+        await initGoogleApi(googleAccessToken);
+
+        await GoogleCalendar({
+          appointment_with: doctor.name,
+          appointment_date: date,
+          appointment_time: time,
+          remarks: "Booked via HealZone",
+        });
+      }
 
       onClose(data.booking);
     } catch (err) {
@@ -297,6 +365,7 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
         <button onClick={submit} disabled={submitting}>
           {submitting ? "Booking..." : "Book"}
         </button>
+
         <button onClick={() => onClose(null)}>Cancel</button>
       </div>
     </div>
