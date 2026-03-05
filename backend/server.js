@@ -85,11 +85,9 @@ app.post("/api/automation", (req, res) => {
   console.log("🤖 Automation Request Received:");
   console.log(JSON.stringify(req.body, null, 2));
 
-  res.json({
-    success: true,
-    message: "Automation payload received",
+  // Return the same payload back
+  res.json(req.body);
   });
-});
 
 /* =========================================================
    HEALTH CHECK
