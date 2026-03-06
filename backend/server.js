@@ -78,17 +78,57 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 
 /* =========================================================
-   AUTOMATION API (FOR BOOKING AUTOMATION TEAM)
+   AUTOMATION PAYLOAD STORAGE
+========================================================= */
+
+let latestAutomationPayload = null;
+
+/* =========================================================
+   AUTOMATION API (POST FROM BOOKING SYSTEM)
+   This will update the payload when booking happens
 ========================================================= */
 
 app.post("/api/automation", (req, res) => {
-  console.log("🤖 Automation Request Received:");
-  console.log(JSON.stringify(req.body, null, 2));
 
-  // Return the same payload back
-  res.json(req.body);
+  latestAutomationPayload = req.body;
+
+  console.log("🤖 New Automation Payload Received:");
+  console.log(JSON.stringify(latestAutomationPayload, null, 2));
+
+  res.json({
+    success: true,
+    message: "Automation payload stored"
   });
 
+});
+
+/* =========================================================
+   AUTOMATION API (GET WITH API KEY)
+   Automation system will call this
+========================================================= */
+
+app.get("/api/automation", (req, res) => {
+
+  const apiKey = req.headers["x-api-key"];
+
+  if (!apiKey || apiKey !== process.env.AUTOMATION_API_KEY) {
+    return res.status(401).json({
+      message: "Invalid API key"
+    });
+  }
+
+  if (!latestAutomationPayload) {
+    return res.json({
+      message: "No booking data yet"
+    });
+  }
+
+  console.log("📤 Automation Payload Sent:");
+  console.log(JSON.stringify(latestAutomationPayload, null, 2));
+
+  res.json(latestAutomationPayload);
+
+});
 /* =========================================================
    HEALTH CHECK
 ========================================================= */
