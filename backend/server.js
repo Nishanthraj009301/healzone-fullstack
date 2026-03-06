@@ -78,33 +78,43 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 
 /* =========================================================
-   AUTOMATION PAYLOAD STORAGE
+   AUTOMATION PAYLOAD STORAGE (LAST 10 BOOKINGS)
 ========================================================= */
 
-let latestAutomationPayload = null;
+let automationQueue = []; // stores last 10 payloads
 
 /* =========================================================
    AUTOMATION API (POST FROM BOOKING SYSTEM)
-   This will update the payload when booking happens
+   Save booking payload
 ========================================================= */
 
 app.post("/api/automation", (req, res) => {
 
-  latestAutomationPayload = req.body;
+  const payload = req.body;
 
-  console.log("🤖 New Automation Payload Received:");
-  console.log(JSON.stringify(latestAutomationPayload, null, 2));
+  // Add new booking to queue
+  automationQueue.push(payload);
+
+  // Keep only last 10 bookings
+  if (automationQueue.length > 10) {
+    automationQueue.shift(); // remove oldest
+  }
+
+  console.log("🤖 New Automation Payload Stored:");
+  console.log(JSON.stringify(payload, null, 2));
 
   res.json({
     success: true,
-    message: "Automation payload stored"
+    message: "Automation payload stored",
+    queueSize: automationQueue.length
   });
 
 });
 
+
 /* =========================================================
    AUTOMATION API (GET WITH API KEY)
-   Automation system will call this
+   Automation system fetches bookings
 ========================================================= */
 
 app.get("/api/automation", (req, res) => {
@@ -117,16 +127,19 @@ app.get("/api/automation", (req, res) => {
     });
   }
 
-  if (!latestAutomationPayload) {
+  if (automationQueue.length === 0) {
     return res.json({
-      message: "No booking data yet"
+      message: "No bookings available"
     });
   }
 
-  console.log("📤 Automation Payload Sent:");
-  console.log(JSON.stringify(latestAutomationPayload, null, 2));
+  console.log("📤 Automation Queue Sent:");
+  console.log(JSON.stringify(automationQueue, null, 2));
 
-  res.json(latestAutomationPayload);
+  res.json({
+    totalBookings: automationQueue.length,
+    bookings: automationQueue
+  });
 
 });
 /* =========================================================
