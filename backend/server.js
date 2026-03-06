@@ -78,46 +78,17 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 
 /* =========================================================
-   AUTOMATION PAYLOAD STORAGE (LAST 10 BOOKINGS)
+   IMPORT BOOKING MODEL
 ========================================================= */
 
-let automationQueue = []; // stores last 10 payloads
-
-/* =========================================================
-   AUTOMATION API (POST FROM BOOKING SYSTEM)
-   Save booking payload
-========================================================= */
-
-app.post("/api/automation", (req, res) => {
-
-  const payload = req.body;
-
-  // Add new booking to queue
-  automationQueue.push(payload);
-
-  // Keep only last 10 bookings
-  if (automationQueue.length > 10) {
-    automationQueue.shift(); // remove oldest
-  }
-
-  console.log("🤖 New Automation Payload Stored:");
-  console.log(JSON.stringify(payload, null, 2));
-
-  res.json({
-    success: true,
-    message: "Automation payload stored",
-    queueSize: automationQueue.length
-  });
-
-});
+const Booking = require("./models/Booking");
 
 
 /* =========================================================
-   AUTOMATION API (GET WITH API KEY)
-   Automation system fetches bookings
+   AUTOMATION API (GET BOOKINGS FOR AUTOMATION SYSTEM)
 ========================================================= */
 
-app.get("/api/automation", (req, res) => {
+app.get("/api/automation", async (req, res) => {
 
   const apiKey = req.headers["x-api-key"];
 
@@ -127,19 +98,65 @@ app.get("/api/automation", (req, res) => {
     });
   }
 
-  if (automationQueue.length === 0) {
-    return res.json({
-      message: "No bookings available"
+  try {
+
+    // Fetch latest 10 confirmed bookings
+    const bookings = await Booking
+      .find({ status: "CONFIRMED" })
+      .populate("user")        // fetch user data
+      .populate("doctorId")    // fetch doctor data
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    if (bookings.length === 0) {
+      return res.json({
+        message: "No bookings available"
+      });
+    }
+
+    const automationPayload = bookings.map(b => {
+
+      const date = new Date(b.bookingDate)
+        .toISOString()
+        .split("T")[0];
+
+      return {
+        doctorList: [
+          {
+            location: b.doctorId?.city || "",
+            speciality: b.doctorId?.speciality || "",
+            doctorName: b.doctorId?.name || "",
+            dateTime: `${date} ${b.bookingTime}`
+          }
+        ],
+        patientList: [
+          {
+            name: b.user?.name || b.fullName,
+            mobileNumber: b.user?.mobileNumber || "",
+            emailId: b.user?.email || b.email
+          }
+        ]
+      };
+
     });
+
+    console.log("📤 Automation Payload Sent:");
+    console.log(JSON.stringify(automationPayload, null, 2));
+
+    res.json({
+      totalBookings: automationPayload.length,
+      bookings: automationPayload
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
   }
-
-  console.log("📤 Automation Queue Sent:");
-  console.log(JSON.stringify(automationQueue, null, 2));
-
-  res.json({
-    totalBookings: automationQueue.length,
-    bookings: automationQueue
-  });
 
 });
 /* =========================================================

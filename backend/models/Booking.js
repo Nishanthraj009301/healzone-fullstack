@@ -64,9 +64,16 @@ const bookingSchema = new mongoose.Schema(
       enum: ["CONFIRMED", "CANCELLED", "COMPLETED"],
       default: "CONFIRMED",
     },
+
+    // ⭐ NEW FIELD FOR AUTOMATION
+    automationStatus: {
+      type: String,
+      enum: ["PENDING", "PROCESSING", "DONE"],
+      default: "PENDING",
+    }
   },
   {
-    timestamps: true, // ✅ adds createdAt & updatedAt
+    timestamps: true,
   }
 );
 
