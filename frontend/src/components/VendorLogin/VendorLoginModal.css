@@ -1,0 +1,180 @@
+/* ================= MODAL OVERLAY ================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.8);
+  backdrop-filter: blur(5px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 1000;
+}
+
+/* ================= MODAL CARD ================= */
+
+.modal-card {
+  width: 420px;
+  max-width: 92%;
+  background: #020617;
+
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+
+  padding: 28px 26px;
+  position: relative;
+
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+}
+
+/* ================= CLOSE BUTTON ================= */
+
+.close-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+
+  font-size: 18px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: white;
+}
+
+/* ================= TITLES ================= */
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 6px;
+}
+
+.modal-subtitle {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  margin-bottom: 22px;
+}
+
+/* ================= INPUTS ================= */
+
+.modal-card input {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+
+  border-radius: 8px;
+  border: 1px solid #334155;
+
+  background: #ffffff;      /* white background */
+  color: #000000;           /* black text */
+
+  font-size: 14px;
+
+  outline: none;
+}
+
+/* placeholder */
+.modal-card input::placeholder {
+  color: #64748b;
+}
+
+/* focus state */
+.modal-card input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56,189,248,0.3);
+}
+
+/* fix chrome autofill */
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+
+/* ================= LOGIN BUTTON ================= */
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+
+  border-radius: 999px;
+  border: none;
+
+  background: #2563eb;
+  color: white;
+
+  font-weight: 600;
+  font-size: 14px;
+
+  margin-top: 10px;
+
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.login-btn:hover {
+  background: #1d4ed8;
+}
+
+/* ================= FORGOT PASSWORD ================= */
+
+.forgot-link {
+  text-align: right;
+  margin-bottom: 10px;
+}
+
+.forgot-link span {
+  font-size: 13px;
+  color: #38bdf8;
+  cursor: pointer;
+}
+
+.forgot-link span:hover {
+  text-decoration: underline;
+}
+
+/* ================= FOOTER ================= */
+
+.auth-footer {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.switch-link {
+  color: #38bdf8;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.switch-link:hover {
+  text-decoration: underline;
+}
+
+/* ================= GOOGLE BUTTON WRAPPER ================= */
+
+.google-login-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 480px) {
+
+  .modal-card {
+    padding: 24px 18px;
+  }
+
+  .modal-title {
+    font-size: 1.3rem;
+  }
+
+}

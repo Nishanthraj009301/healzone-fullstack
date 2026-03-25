@@ -4,6 +4,7 @@ import LoginModal from "./components/Userlogin/LoginModal";
 import "./Home.css";
 import { useContext } from "react";
 import { LocationContext } from "./context/LocationContext";
+import VendorLoginModal from "./components/VendorLogin/VendorLoginModal";
 
 /* ================= ICONS ================= */
 const Icon = ({ type }) => {
@@ -59,6 +60,7 @@ export default function Home() {
   const [doctors, setDoctors] = useState([]);
   const [user, setUser] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showVendorLogin, setShowVendorLogin] = useState(false);
 
 const [searchQuery, setSearchQuery] = useState("");
 
@@ -308,13 +310,24 @@ const checkUser = async () => {
     )}
   </div>
 ) : (
+  <div className="auth-buttons">
   <button
     className="login"
     onClick={() => setShowLogin(true)}
   >
     Login
   </button>
+
+  <button
+  className="login"
+  onClick={() => setShowVendorLogin(true)}
+>
+  Vendor Login
+</button>
+</div>
 )}
+
+
             </nav>
           </div>
         </div>
@@ -592,13 +605,23 @@ const checkUser = async () => {
         </div>
       )}
 
-      {/* ================= LOGIN COMPONENT ================= */}
-      <LoginModal
+    {/* ================= MODALS ================= */}
+
+<LoginModal
   show={showLogin}
   onClose={() => setShowLogin(false)}
   onSuccess={async () => {
     await checkUser();
     setShowLogin(false);
+  }}
+/>
+
+<VendorLoginModal
+  show={showVendorLogin}
+  onClose={() => setShowVendorLogin(false)}
+  onSuccess={async () => {
+    await checkUser();
+    setShowVendorLogin(false);
   }}
 />
     </div>

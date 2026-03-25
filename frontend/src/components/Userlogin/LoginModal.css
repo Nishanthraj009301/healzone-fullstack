@@ -226,3 +226,38 @@
     font-size: 22px;
   }
 }
+
+/* ================= ROLE TOGGLE ================= */
+
+.role-toggle{
+  display:flex;
+  background:#f1f5f9;
+  border-radius:14px;
+  padding:4px;
+  margin-bottom:28px;
+  border:1px solid #e2e8f0;
+}
+
+.role-toggle button{
+  flex:1;
+  padding:12px 0;
+  border:none;
+  outline:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:600;
+  background:transparent;
+  color:#475569;
+  transition:all 0.25s ease;
+}
+
+.role-toggle button:hover{
+  background:#e2e8f0;
+}
+
+.role-toggle button.active{
+  background:#ffffff;
+  color:#0f172a;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+}

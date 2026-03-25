@@ -1,0 +1,157 @@
+.vendor-services-page {
+  padding: 40px;
+  background: #07142a;
+  min-height: 100vh;
+  color: white;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* HEADER */
+
+.services-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+}
+
+.services-header h1{
+font-size:26px;
+font-weight:600;
+}
+
+/* ADD SERVICE BUTTON */
+
+.add-service-btn{
+background:linear-gradient(135deg,#4cc9f0,#6366f1);
+border:none;
+color:white;
+padding:10px 16px;
+border-radius:8px;
+cursor:pointer;
+font-weight:500;
+transition:0.25s;
+}
+
+.add-service-btn:hover{
+transform:translateY(-2px);
+box-shadow:0 6px 18px rgba(0,0,0,0.3);
+}
+
+/* SERVICES GRID */
+
+.services-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+gap:24px;
+margin-top:20px;
+}
+
+/* SERVICE CARD */
+
+.service-card{
+background:#0f1b33;
+padding:24px;
+border-radius:14px;
+border:1px solid rgba(255,255,255,0.08);
+transition:0.2s;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+min-height:160px;
+}
+
+.service-card:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 25px rgba(0,0,0,0.35);
+}
+
+.service-card h3{
+font-size:20px;
+font-weight:600;
+margin-bottom:10px;
+color:white;
+}
+
+/* DESCRIPTION */
+
+.service-desc{
+color:#cbd5f5;
+font-size:14px;
+margin-bottom:10px;
+}
+
+/* META */
+
+.service-meta{
+color:#4cc9f0;
+font-weight:500;
+font-size:14px;
+}
+
+/* ACTION BUTTONS */
+
+.service-actions{
+margin-top:auto;
+display:flex;
+gap:12px;
+}
+
+/* ACTION BUTTON CONTAINER */
+
+.service-actions{
+display:flex;
+gap:12px;
+align-items:center; /* keeps buttons aligned */
+}
+
+
+/* COMMON BUTTON STYLE */
+
+.edit-btn,
+.delete-btn{
+min-width:95px;
+height:40px;
+border:none;
+border-radius:8px;
+color:white;
+cursor:pointer;
+font-size:14px;
+font-weight:500;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+
+/* EDIT BUTTON */
+
+.edit-btn{
+background:#3b82f6;
+}
+
+.edit-btn:hover{
+background:#2563eb;
+}
+
+
+/* DELETE BUTTON */
+
+.delete-btn{
+background:#ef4444;
+}
+
+.delete-btn:hover{
+background:#dc2626;
+}
+
+/* EMPTY STATE */
+
+.no-services{
+background:rgba(255,255,255,0.03);
+padding:30px;
+border-radius:12px;
+text-align:center;
+border:1px solid rgba(255,255,255,0.06);
+color:#cbd5f5;
+}

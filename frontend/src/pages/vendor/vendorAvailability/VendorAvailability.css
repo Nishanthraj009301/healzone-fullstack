@@ -1,0 +1,150 @@
+/* =========================
+PAGE LAYOUT
+========================= */
+
+.availability-page{
+padding:40px;
+background:linear-gradient(180deg,#07142a,#081a38,#0a2046);
+min-height:100vh;
+color:white;
+font-family:Segoe UI,sans-serif;
+}
+
+/* =========================
+HEADER
+========================= */
+
+.availability-header{
+display:flex;
+align-items:center;
+gap:15px;
+margin-bottom:30px;
+}
+
+/* logo */
+
+.availability-logo{
+width:120px;
+height:auto;
+}
+
+/* title */
+
+.availability-header h1{
+font-size:28px;
+background:linear-gradient(90deg,#4cc9f0,#6366f1);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+/* =========================
+TITLE
+========================= */
+
+.availability-page h1{
+margin-bottom:35px;
+font-size:28px;
+background:linear-gradient(90deg,#4cc9f0,#6366f1);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+/* =========================
+GRID
+========================= */
+
+.availability-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+gap:22px;
+}
+
+/* =========================
+CARD
+========================= */
+
+.availability-card{
+background:rgba(255,255,255,0.03);
+padding:22px;
+border-radius:14px;
+border:1px solid rgba(255,255,255,0.06);
+backdrop-filter:blur(10px);
+transition:0.25s;
+position:relative;
+}
+
+/* hover glow */
+
+.availability-card:hover{
+transform:translateY(-4px);
+box-shadow:0 10px 25px rgba(0,0,0,0.35);
+border-color:rgba(76,201,240,0.5);
+}
+
+/* day label */
+
+.availability-card h3{
+font-size:16px;
+color:#c7d2fe;
+margin-bottom:10px;
+}
+
+/* =========================
+TIME INPUTS
+========================= */
+
+.time-inputs{
+margin-top:12px;
+display:flex;
+gap:10px;
+}
+
+.time-inputs input{
+padding:8px;
+border-radius:8px;
+border:1px solid rgba(255,255,255,0.1);
+background:#0d1b34;
+color:white;
+outline:none;
+font-size:13px;
+}
+
+.time-inputs input:focus{
+border-color:#4cc9f0;
+box-shadow:0 0 6px rgba(76,201,240,0.5);
+}
+
+/* =========================
+SAVE BUTTON
+========================= */
+
+.save-btn{
+margin-top:35px;
+background:linear-gradient(135deg,#22c55e,#16a34a);
+border:none;
+padding:13px 26px;
+color:white;
+border-radius:10px;
+cursor:pointer;
+font-size:15px;
+font-weight:500;
+box-shadow:0 6px 18px rgba(34,197,94,0.35);
+transition:0.25s;
+}
+
+.save-btn:hover{
+transform:translateY(-2px);
+box-shadow:0 10px 22px rgba(34,197,94,0.45);
+}
+
+/* =========================
+RESPONSIVE
+========================= */
+
+@media (max-width:768px){
+
+.availability-grid{
+grid-template-columns:1fr;
+}
+
+}

@@ -186,3 +186,308 @@ body {
     transform: translateY(0);
   }
 }
+
+/* ===============================
+   AVAILABILITY SECTION
+=============================== */
+
+.availability-section{
+  margin-top:22px;
+}
+
+/* SLOT CARD */
+
+.availability-card{
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:16px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.04);
+}
+
+/* WEEKDAY SELECTOR */
+
+.weekday-selector{
+  display:flex;
+  gap:8px;
+  margin-bottom:16px;
+  flex-wrap:wrap;
+}
+
+.weekday-chip{
+  padding:6px 12px;
+  border-radius:20px;
+  border:1px solid #e5e7eb;
+  background:#ffffff;
+  cursor:pointer;
+  font-size:13px;
+  transition:all 0.2s ease;
+}
+
+.weekday-chip:hover{
+  border-color:#ec4899;
+}
+
+.weekday-chip.active{
+  background:#ec4899;
+  color:white;
+  border-color:#ec4899;
+}
+
+/* SLOT GRID */
+
+.slot-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+/* FIELD */
+
+.slot-field{
+  display:flex;
+  flex-direction:column;
+}
+
+.slot-field label{
+  font-size:13px;
+  font-weight:500;
+  margin-bottom:6px;
+  color:#475569;
+}
+
+/* SLOT INPUTS */
+
+.slot-field input{
+  padding:12px;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  font-size:14px;
+  background:#ffffff;
+  transition:all 0.2s ease;
+}
+
+.slot-field input:focus{
+  outline:none;
+  border-color:#ec4899;
+  box-shadow:0 0 0 3px rgba(236,72,153,0.12);
+}
+
+/* ADD SLOT BUTTON */
+
+.add-slot-button{
+  margin-top:12px;
+  padding:11px 18px;
+  background:#2563eb;
+  color:#ffffff;
+  border:none;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:500;
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+
+.add-slot-button:hover{
+  background:#1d4ed8;
+  transform:translateY(-1px);
+}
+
+/* REMOVE SLOT */
+
+.remove-slot{
+  margin-top:12px;
+  background:#ef4444;
+  color:white;
+  border:none;
+  padding:7px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:13px;
+  font-weight:500;
+  transition:all 0.2s ease;
+}
+
+.remove-slot:hover{
+  background:#dc2626;
+}
+
+/* SLOT NOTE */
+
+.slot-note{
+  margin-top:16px;
+  padding:14px 16px;
+  border-radius:12px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  font-size:13px;
+  color:#475569;
+  line-height:1.6;
+}
+
+.slot-note-title{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-weight:500;
+  margin-bottom:6px;
+}
+
+.slot-note ul{
+  margin:6px 0 0 18px;
+  padding:0;
+}
+
+.slot-note li{
+  margin-bottom:4px;
+}
+
+/* ===============================
+   RESPONSIVE
+=============================== */
+
+@media (max-width:768px){
+
+  .slot-grid{
+    grid-template-columns:1fr;
+  }
+
+  .weekday-selector{
+    gap:6px;
+  }
+
+}
+
+/* ===============================
+   MAP SECTION
+=============================== */
+
+.map-wrapper{
+  margin-top:14px;
+}
+
+/* SEARCH BAR */
+
+.map-search-box{
+  display:flex;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.map-search-box input{
+  flex:1;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1px solid #e5e7eb;
+  font-size:14px;
+}
+
+.map-search-box input:focus{
+  outline:none;
+  border-color:#ec4899;
+  box-shadow:0 0 0 3px rgba(236,72,153,0.12);
+}
+
+.map-search-box button{
+  padding:12px 16px;
+  border:none;
+  border-radius:10px;
+  background:#2563eb;
+  color:white;
+  font-size:13px;
+  font-weight:500;
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+
+.map-search-box button:hover{
+  background:#1d4ed8;
+}
+
+/* ADDRESS SUGGESTIONS */
+
+.map-suggestions{
+  background:#ffffff;
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  max-height:160px;
+  overflow-y:auto;
+  box-shadow:0 8px 20px rgba(0,0,0,0.08);
+}
+
+.map-suggestion-item{
+  padding:10px 12px;
+  font-size:13px;
+  cursor:pointer;
+  border-bottom:1px solid #f1f5f9;
+  transition:background 0.15s ease;
+}
+
+.map-suggestion-item:last-child{
+  border-bottom:none;
+}
+
+.map-suggestion-item:hover{
+  background:#f8fafc;
+}
+
+/* MAP CONTAINER */
+
+.leaflet-container{
+  margin-top:10px;
+  border-radius:12px;
+  overflow:hidden;
+  border:1px solid #e5e7eb;
+}
+
+.map-label{
+  display:block;
+  font-size:13px;
+  margin-top:12px;
+  margin-bottom:6px;
+  color:#475569;
+}
+
+/* ===============================
+   PHOTO PREVIEW
+=============================== */
+
+.photo-preview-container{
+  position: relative;
+  display: inline-block;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.photo-preview{
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* REMOVE BUTTON */
+
+.remove-photo{
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: #ef4444;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-photo:hover{
+  background: #dc2626;
+}

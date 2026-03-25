@@ -1,15 +1,19 @@
 import { useState, useContext } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import "./LoginModal.css";
+import { useNavigate } from "react-router-dom";
+import "./VendorLoginModal.css";
 import { AuthContext } from "../../context/AuthContext";
 
-export default function LoginModal({ show, onClose, onSuccess }) {
+export default function VendorLoginModal({ show, onClose }) {
+
   const { setUser } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const [mode, setMode] = useState("login");
 
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     mobileNumber: "",
     password: "",
@@ -27,8 +31,10 @@ export default function LoginModal({ show, onClose, onSuccess }) {
   /* ================= GOOGLE LOGIN ================= */
 
   const handleGoogleLogin = async (credentialResponse) => {
+
     try {
-      const url = `${process.env.REACT_APP_API_URL}/api/auth/google/patient`;
+
+      const url = `${process.env.REACT_APP_API_URL}/api/auth/google/vendor`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -42,19 +48,24 @@ export default function LoginModal({ show, onClose, onSuccess }) {
       const data = await res.json();
 
       if (res.ok) {
+
         const userRes = await fetch(
           `${process.env.REACT_APP_API_URL}/api/auth/me`,
           { credentials: "include" }
         );
 
         const userData = await userRes.json();
+
         setUser(userData.user);
 
         onClose();
-        if (onSuccess) onSuccess();
+
+        navigate("/vendor/dashboard");
+
       } else {
         alert(data.message);
       }
+
     } catch (error) {
       console.error("Google login error:", error);
       alert("Google login failed");
@@ -63,114 +74,102 @@ export default function LoginModal({ show, onClose, onSuccess }) {
 
   /* ================= LOGIN ================= */
 
-  const handleLogin = async () => {
+const handleLogin = async () => {
+
   try {
-    const url = `${process.env.REACT_APP_API_URL}/api/auth/login`;
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password,
-      }),
-    });
-
-    const data = await res.json();
-    // console.log("LOGIN RESPONSE:", data);
-
-    if (res.ok) {
-      const userRes = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/auth/me`,
-        { credentials: "include" }
-      );
-
-      // console.log("ME STATUS:", userRes.status);
-
-      const userData = await userRes.json();
-      // console.log("ME RESPONSE:", userData);
-
-      if (!userRes.ok) {
-        alert("Login failed (session issue)");
-        return;
-      }
-
-      setUser(userData.user);
-
-      onClose();
-      if (onSuccess) onSuccess();
-    } else {
-      alert(data.message);
-    }
-  } catch (error) {
-    console.error("Login error:", error);
-    alert("Something went wrong");
-  }
-};
-
-  /* ================= REGISTER ================= */
-
-  const handleRegister = async () => {
-    if (!formData.mobileNumber) {
-      alert("Mobile number is required");
-      return;
-    }
-
-    try {
-      const url = `${process.env.REACT_APP_API_URL}/api/auth/register`;
-
-      const res = await fetch(url, {
+    const res = await fetch(
+      `${process.env.REACT_APP_API_URL}/api/vendors/login`,
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include",
         body: JSON.stringify({
-          name: formData.name,
           email: formData.email,
-          mobileNumber: formData.mobileNumber,
           password: formData.password,
         }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        const userRes = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/auth/me`,
-          { credentials: "include" }
-        );
-
-        const userData = await userRes.json();
-        setUser(userData.user);
-
-        onClose();
-        if (onSuccess) onSuccess();
-      } else {
-        alert(data.message);
       }
-    } catch (error) {
-      console.error("Register error:", error);
-      alert("Something went wrong");
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Invalid credentials");
+      return;
     }
+
+    /* DB credentials matched */
+
+    const vendorUser = {
+      ...data.vendor,
+      role: "vendor"
+    };
+
+    /* save login */
+
+    setUser(vendorUser);
+
+    localStorage.setItem("user", JSON.stringify(vendorUser));
+
+    /* open dashboard */
+
+    navigate("/vendor/dashboard");
+
+    onClose();
+
+  } catch (error) {
+
+    console.error("Login error:", error);
+    alert("Login failed");
+
+  }
+
+};
+
+  /* ================= REGISTER ================= */
+
+  const handleRegister = () => {
+
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.email ||
+      !formData.mobileNumber ||
+      !formData.password
+    ) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    onClose();
+
+    /* redirect to vendor registration form with filled data */
+
+    navigate("/register?role=vendor", {
+      state: formData
+    });
+
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
+
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+
         <span className="close-btn" onClick={onClose}>
           ✕
         </span>
 
-        {/* LOGIN */}
+        {/* ================= LOGIN ================= */}
 
         {mode === "login" && (
+
           <>
-            <h2 className="modal-title">Welcome Back</h2>
+            <h2 className="modal-title">Vendor Login</h2>
 
             <p className="modal-subtitle">
-              Login to continue to <strong>Healzone</strong>
+              Login to manage your <strong>Healzone services</strong>
             </p>
 
             <input
@@ -209,32 +208,37 @@ export default function LoginModal({ show, onClose, onSuccess }) {
             </button>
 
             <div className="auth-footer">
-              Don’t have an account?{" "}
+              Don’t have a vendor account?{" "}
               <span
                 className="switch-link"
                 onClick={() => setMode("register")}
               >
-                Create one
+                Register
               </span>
             </div>
           </>
         )}
 
-        {/* REGISTER */}
+        {/* ================= REGISTER ================= */}
 
         {mode === "register" && (
-          <>
-            <h2 className="modal-title">Create Account</h2>
 
-            <p className="modal-subtitle">
-              Join <strong>Healzone</strong>
-            </p>
+          <>
+            <h2 className="modal-title">Vendor Registration</h2>
 
             <input
               type="text"
-              name="name"
-              placeholder="Full Name"
-              value={formData.name}
+              name="firstName"
+              placeholder="First Name"
+              value={formData.firstName}
+              onChange={handleChange}
+            />
+
+            <input
+              type="text"
+              name="lastName"
+              placeholder="Last Name"
+              value={formData.lastName}
               onChange={handleChange}
             />
 
@@ -263,7 +267,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
             />
 
             <button className="login-btn" onClick={handleRegister}>
-              Register
+              Continue
             </button>
 
             <div className="auth-footer">
@@ -278,15 +282,12 @@ export default function LoginModal({ show, onClose, onSuccess }) {
           </>
         )}
 
-        {/* FORGOT PASSWORD */}
+        {/* ================= FORGOT PASSWORD ================= */}
 
         {mode === "forgot" && (
+
           <>
             <h2 className="modal-title">Reset Password</h2>
-
-            <p className="modal-subtitle">
-              Enter your email and we’ll send a reset link.
-            </p>
 
             <input
               type="email"
@@ -296,36 +297,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
               onChange={handleChange}
             />
 
-            <button
-              className="login-btn"
-              onClick={async () => {
-                try {
-                  const res = await fetch(
-                    `${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
-                    {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        email: formData.email,
-                      }),
-                    }
-                  );
-
-                  const data = await res.json();
-
-                  if (res.ok) {
-                    alert("Reset link sent to your email.");
-                    setMode("login");
-                  } else {
-                    alert(data.message);
-                  }
-                } catch (err) {
-                  alert("Failed to send reset email.");
-                }
-              }}
-            >
+            <button className="login-btn">
               Send Reset Link
             </button>
 
@@ -339,7 +311,9 @@ export default function LoginModal({ show, onClose, onSuccess }) {
             </div>
           </>
         )}
+
       </div>
+
     </div>
   );
 }

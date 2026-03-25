@@ -42,16 +42,18 @@ useEffect(() => {
   if (search) params.append("search", search);
   
 
-  const url = `${process.env.REACT_APP_API_URL}/api/doctors?${params.toString()}`;
+  // const url = `${process.env.REACT_APP_API_URL}/api/doctors?${params.toString()}`;
 
-  console.log("Fetching doctors from:", url); // 🔥 DEBUG
+  const url = `http://localhost:5000/api/doctors?${params.toString()}`;
+
+  // console.log("Fetching doctors from:", url); // 🔥 DEBUG
 
   setLoading(true);
 
   fetch(url)
     .then((res) => res.json())
     .then((data) => {
-      console.log("Doctors response:", data); // 🔥 DEBUG
+      // console.log("Doctors response:", data); // 🔥 DEBUG
       setDoctors(Array.isArray(data) ? data : []);
       setLoading(false);
     })

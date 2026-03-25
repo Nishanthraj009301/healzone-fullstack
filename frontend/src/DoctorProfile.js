@@ -19,10 +19,13 @@ export default function DoctorProfile() {
     async function fetchDoctor() {
       try {
         const res = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/doctors/${id}`
+          `${process.env.REACT_APP_API_URL}/api/doctors/${id}?t=${Date.now()}`
         );
         if (!res.ok) throw new Error("Doctor not found");
+
         const data = await res.json();
+        // console.log("Doctor API response:", data);
+
         if (mounted) setDoctor(data);
       } catch (err) {
         if (mounted) setDoctor(null);
@@ -49,11 +52,7 @@ export default function DoctorProfile() {
       <header className="header">
         <div className="header-inner">
           <button className="logo-button" onClick={() => navigate("/")}>
-            <img
-              src="/healonelogo.png"
-              alt="Healzone"
-              className="header-logo"
-            />
+            <img src="/healonelogo.png" alt="Healzone" className="header-logo" />
           </button>
         </div>
       </header>
@@ -79,16 +78,35 @@ export default function DoctorProfile() {
 /* ================= HERO ================= */
 
 function Hero({ doctor }) {
+  const imageUrl = doctor.profile_url
+  ? doctor.profile_url.startsWith("http")
+    ? doctor.profile_url
+    : `http://localhost:5000${doctor.profile_url}`
+  : "/doctor-placeholder.png";
+
+  const name =
+    doctor.name ||
+    `${doctor.firstName || ""} ${doctor.lastName || ""}`.trim();
+
+  const focus = doctor.focus_area || doctor.speciality || "";
+
+  // 🔍 ADD DEBUG HERE
+  // console.log("PHOTO:", doctor.photo);
+  // console.log("PROFILE_URL:", doctor.profile_url);
+  // console.log("FINAL IMAGE URL:", imageUrl);
+
   return (
     <div className="profile-hero">
-      <img
-        src={doctor.profile_url || "/doctor-placeholder.png"}
-        alt={doctor.name}
-      />
+      <img src={imageUrl} alt={name} />
+
       <div className="hero-text">
-        <h1>{doctor.name}</h1>
-        {doctor.speciality && <p className="speciality">{doctor.speciality}</p>}
-        {doctor.focus_area && <p className="focus">{doctor.focus_area}</p>}
+        <h1>{name}</h1>
+
+        {doctor.speciality && (
+          <p className="speciality">{doctor.speciality}</p>
+        )}
+
+        {focus && <p className="focus">{focus}</p>}
       </div>
     </div>
   );
@@ -100,8 +118,8 @@ function Clinic({ doctor }) {
   return (
     <div className="profile-section">
       <h3>Clinic</h3>
-      <p>{doctor.address1}</p>
-      <p>{doctor.city}</p>
+      <p>{doctor.address1 || doctor.address}</p>
+      <p>{doctor.city || doctor.state}</p>
     </div>
   );
 }
@@ -112,22 +130,27 @@ function About({ doctor }) {
   return (
     <div className="profile-section">
       <h3>About Doctor</h3>
-      <p className="description">{doctor.about || "About not available"}</p>
+      <p className="description">
+        {doctor.about || doctor.discription || "About not available"}
+      </p>
     </div>
   );
 }
 
-/* ================= LOCATION MAP ================= */
+/* ================= LOCATION ================= */
 
 function LocationMap({ doctor }) {
-  if (!doctor.latitude || !doctor.longitude) return null;
+  const lat = doctor.latitude || doctor.location?.coordinates?.[1];
+  const lng = doctor.longitude || doctor.location?.coordinates?.[0];
+
+  if (!lat || !lng) return null;
 
   return (
     <div className="profile-section">
       <h3>Location</h3>
       <iframe
         title="Clinic Location"
-        src={`https://www.google.com/maps?q=${doctor.latitude},${doctor.longitude}&z=15&output=embed`}
+        src={`https://www.google.com/maps?q=${lat},${lng}&z=15&output=embed`}
         loading="lazy"
       />
     </div>
@@ -145,50 +168,104 @@ function Appointment({ doctor }) {
   const [showLogin, setShowLogin] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(null);
 
-  const hours = (doctor.consultation_hours || []).filter(
-    (h) => h.from || h.to
-  );
+  let days = [];
+  let slots = [];
 
-  if (hours.length === 0) {
+  /* ================= BACKEND SLOTS ================= */
+  if (doctor.slots?.length > 0) {
+    days = doctor.slots.map(d => d.day);
+    const selectedDay = days[dayIndex];
+    const selectedSlots = doctor.slots.find(d => d.day === selectedDay);
+    slots = selectedSlots ? selectedSlots.slots : [];
+  }
+
+  /* ================= VENDOR AVAILABILITY ================= */
+  else if (doctor.availability?.length > 0) {
+    days = doctor.availability.map(a => a.day);
+
+    const selectedDay = days[dayIndex];
+    const availability = doctor.availability.find(a => a.day === selectedDay);
+
+    if (availability) {
+      const start = availability.start;
+      const end = availability.end;
+      const duration = doctor.appointmentDuration || 30;
+
+      const startMinutes =
+        parseInt(start.split(":")[0]) * 60 +
+        parseInt(start.split(":")[1]);
+
+      const endMinutes =
+        parseInt(end.split(":")[0]) * 60 +
+        parseInt(end.split(":")[1]);
+
+      for (let t = startMinutes; t < endMinutes; t += duration) {
+        const hour = String(Math.floor(t / 60)).padStart(2, "0");
+        const minute = String(t % 60).padStart(2, "0");
+        slots.push(`${hour}:${minute}`);
+      }
+    }
+  }
+
+  /* ================= CSV CONSULTATION HOURS ================= */
+  else {
+    const hours = Object.keys(doctor)
+      .filter(key => key.startsWith("consultation_hours"))
+      .map(key => doctor[key])
+      .filter(h => h?.from && h?.to);
+
+    if (hours.length > 0) {
+      days = [...new Set(hours.map(h => h.day))];
+
+      const selectedDay = days[dayIndex];
+      const selectedHours = hours.find(h => h.day === selectedDay);
+
+      if (selectedHours) {
+        const start = selectedHours.from;
+        const end = selectedHours.to;
+        const duration = doctor.appointmentDuration || 30;
+
+        const startMinutes =
+          parseInt(start.split(":")[0]) * 60 +
+          parseInt(start.split(":")[1]);
+
+        const endMinutes =
+          parseInt(end.split(":")[0]) * 60 +
+          parseInt(end.split(":")[1]);
+
+        for (let t = startMinutes; t < endMinutes; t += duration) {
+          const hour = String(Math.floor(t / 60)).padStart(2, "0");
+          const minute = String(t % 60).padStart(2, "0");
+          slots.push(`${hour}:${minute}`);
+        }
+      }
+    }
+  }
+
+  if (days.length === 0) {
     return <div className="booking-sticky">No consultation hours</div>;
   }
 
-  const days = [...new Set(hours.map((h) => h.day))];
   const selectedDay = days[dayIndex];
-
-  const slots = hours
-    .filter((h) => h.day === selectedDay)
-    .flatMap((h) => [h.from?.slice(0, 5), h.to?.slice(0, 5)])
-    .filter(Boolean);
-
-  const fee = doctor.Rokka || 0;
+  const fee = doctor.consultationFee || doctor.Rokka || 0;
 
   function getNextDate(dayName) {
-  const daysList = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
+    const daysList = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const today = new Date();
+    const todayIndex = today.getDay();
+    const targetIndex = daysList.indexOf(dayName);
 
-  const today = new Date();
-  const todayIndex = today.getDay();
-  const targetIndex = daysList.indexOf(dayName);
+    let diff = targetIndex - todayIndex;
+    if (diff <= 0) diff += 7;
 
-  let diff = targetIndex - todayIndex;
-  if (diff <= 0) diff += 7;
+    const nextDate = new Date(today);
+    nextDate.setDate(today.getDate() + diff);
 
-  const nextDate = new Date(today);
-  nextDate.setDate(today.getDate() + diff);
-
-  return nextDate.toISOString().split("T")[0];
-}
+    return nextDate.toISOString().split("T")[0];
+  }
 
   const handleConfirmClick = () => {
-    if (!user) {
+    if (!user || !user.id) {
       setShowLogin(true);
       return;
     }
@@ -282,7 +359,7 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
 
     const payload = {
       doctorId: doctor._id,
-      vendorId: doctor.vendorId,
+      vendorId: doctor._id,
       bookingDate: date,
       bookingTime: time,
       consultationFee: Number(fee),
@@ -290,7 +367,7 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
 
     try {
       const res = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/bookings/create`,
+  `${process.env.REACT_APP_API_URL}/api/bookings/create`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -305,13 +382,12 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
         alert(data.message || "Booking failed");
         return;
       }
-      console.log("User object:", user);
 
-      /* ✅ SEND DATA TO AUTOMATION API */
+      /* AUTOMATION API */
       const automationPayload = {
         doctorList: [
           {
-            location: doctor.city || "",
+            location: doctor.city || doctor.state || "",
             speciality: doctor.speciality || "",
             doctorName: doctor.name || "",
             dateTime: `${date} ${time}`,
@@ -326,17 +402,13 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
         ],
       };
 
-      console.log("Automation Payload:", automationPayload);
-
       await fetch(`${process.env.REACT_APP_API_URL}/api/automation`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(automationPayload),
       });
 
-      // ✅ Google Calendar integration
+      /* GOOGLE CALENDAR */
       if (googleAccessToken) {
         await initGoogleApi(googleAccessToken);
 
@@ -349,6 +421,7 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
       }
 
       onClose(data.booking);
+
     } catch (err) {
       alert("Something went wrong");
     } finally {
@@ -371,6 +444,7 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
     </div>
   );
 }
+
 
 /* ================= SUCCESS MODAL ================= */
 
