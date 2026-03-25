@@ -2,81 +2,107 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const Vendor = require("../models/Vendor");
 const sendEmail = require("../utils/sendEmail");
+const multer = require("multer");
 
 const router = express.Router();
 
+/* ================= MULTER CONFIG ================= */
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
+
 /* =========================================================
-   REGISTER (VENDOR + DOCTOR) - DEFAULT STATUS = PENDING
+   REGISTER
 ========================================================= */
-router.post("/register", async (req, res) => {
-  console.log("🚀 REGISTER ROUTE HIT");
 
+router.post("/register", upload.single("photo"), async (req, res) => {
   try {
-    if (!req.body) {
-      console.log("❌ No body received");
-      return res.status(400).json({ message: "Request body missing" });
-    }
-
-    console.log("BODY:", req.body);
-
     const data = req.body;
 
-    /* ================= VALIDATION ================= */
+    console.log("FULL BODY:", data);
 
-    if (!data.firstName || !data.lastName) {
-      console.log("❌ Name validation failed");
-      return res.status(400).json({
-        message: "First name and last name are required",
-      });
-    }
+    /* ================= VALIDATIONS ================= */
 
-    if (!data.email) {
-      console.log("❌ Email missing");
-      return res.status(400).json({
-        message: "Email is required",
-      });
-    }
+    if (!data.firstName || !data.lastName)
+      return res.status(400).json({ message: "First name and last name required" });
 
-    if (!data.password) {
-      console.log("❌ Password missing");
-      return res.status(400).json({
-        message: "Password is required",
-      });
-    }
+    if (!data.email)
+      return res.status(400).json({ message: "Email required" });
 
-    if (!data.category) {
-      console.log("❌ Category missing");
-      return res.status(400).json({
-        message: "Category is required",
-      });
-    }
+    if (!data.password)
+      return res.status(400).json({ message: "Password required" });
 
-    console.log("✅ Validation passed");
-
-    /* ================= CHECK DUPLICATE ================= */
+    if (!data.category)
+      return res.status(400).json({ message: "Category required" });
 
     const existingVendor = await Vendor.findOne({ email: data.email });
 
     if (existingVendor) {
-      console.log("❌ Duplicate email found");
       return res.status(400).json({
-        message: "Email already registered",
+        message: "Email already registered"
       });
     }
-
-    console.log("✅ No duplicate found");
 
     /* ================= HASH PASSWORD ================= */
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    console.log("✅ Password hashed");
 
-    /* ================= CREATE RECORD ================= */
+    /* ================= PARSE AVAILABILITY ================= */
+
+    let parsedAvailability = [];
+
+    if (data.availability) {
+      try {
+        parsedAvailability =
+          typeof data.availability === "string"
+            ? JSON.parse(data.availability)
+            : data.availability;
+      } catch (err) {
+        console.log("❌ Availability parse error:", err);
+        parsedAvailability = [];
+      }
+    }
+
+    console.log("FINAL availability:", parsedAvailability);
+
+    /* ================= LOCATION FIX ================= */
+
+    let location = undefined;
+
+    if (data.location) {
+      try {
+        const parsedLocation = JSON.parse(data.location);
+
+        if (
+          parsedLocation.coordinates &&
+          parsedLocation.coordinates.length === 2
+        ) {
+          location = {
+            type: "Point",
+            coordinates: parsedLocation.coordinates
+          };
+        }
+      } catch (err) {
+        location = undefined;
+      }
+    }
+
+    /* ================= CREATE VENDOR ================= */
 
     const vendor = new Vendor({
       firstName: data.firstName,
       lastName: data.lastName,
       name: `${data.firstName} ${data.lastName}`,
+
+      photo: req.file ? req.file.filename : "",
 
       category: data.category,
       speciality: data.speciality || "",
@@ -91,106 +117,273 @@ router.post("/register", async (req, res) => {
 
       consultationFee: data.consultationFee || 0,
       appointmentDuration: data.appointmentDuration || 30,
-      services: data.services || [],
+
+      services: data.services || "",
+
+      // ✅ FIXED HERE
+      availability: parsedAvailability,
+
+      location: location,
 
       status: "PENDING",
-      isActive: true,
+      isActive: true
     });
 
+    await vendor.save();
+
+    console.log("✅ SAVED VENDOR:", vendor);
+
+    /* ================= SEND EMAIL ================= */
+
     try {
-      await vendor.save();
-      console.log("✅ Vendor saved successfully");
-    } catch (saveError) {
-      console.error("❌ SAVE ERROR:", saveError);
-      return res.status(500).json({
-        message: "Database save failed",
-        error: saveError.message,
+      await sendEmail({
+        to: vendor.email,
+        subject: "HealZone – Registration Received",
+        html: `
+          <h2>Welcome ${vendor.firstName}</h2>
+          <p>Your account has been created.</p>
+          <p>Status: <b>Pending Admin Approval</b></p>
+        `
       });
+    } catch (e) {
+      console.log("Email failed but registration saved");
     }
 
-/* ================= SEND EMAIL ================= */
-
-try {
-  console.log("📧 Sending email to:", vendor.email);
-
-  await sendEmail({
-    to: vendor.email,
-    subject: "HealZone – Registration Received & Under Review",
-    html: `
-      <div style="font-family: Arial, Helvetica, sans-serif; background:#f4f6f9; padding:40px 20px;">
-        
-        <div style="max-width:600px; margin:0 auto; background:#ffffff; padding:30px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.06);">
-          
-          <h2 style="color:#2563eb; margin-bottom:10px;">
-            Welcome to HealZone, ${vendor.firstName} 👋
-          </h2>
-
-          <p style="color:#333; font-size:14px; line-height:1.6;">
-            Thank you for registering as a <strong>${vendor.category}</strong> partner on <b>HealZone</b>.
-          </p>
-
-          <p style="color:#333; font-size:14px; line-height:1.6;">
-            We have successfully received your registration details. 
-            Your profile is currently being reviewed by our admin team to ensure quality and compliance.
-          </p>
-
-          <div style="background:#eef2ff; padding:15px 20px; border-radius:6px; margin:20px 0;">
-            <p style="margin:6px 0; font-size:14px;">
-              <strong>Registration Status:</strong> Pending Approval
-            </p>
-            <p style="margin:6px 0; font-size:14px;">
-              <strong>Category:</strong> ${vendor.category}
-            </p>
-            <p style="margin:6px 0; font-size:14px;">
-              <strong>Registered On:</strong> ${new Date().toDateString()}
-            </p>
-          </div>
-
-          <p style="color:#333; font-size:14px; line-height:1.6;">
-            Once your profile is approved, you will receive a confirmation email 
-            with further instructions to start accepting appointments on HealZone.
-          </p>
-
-          <p style="color:#333; font-size:14px; line-height:1.6;">
-            If you have any questions in the meantime, feel free to contact our support team.
-          </p>
-
-          <hr style="margin:30px 0; border:none; border-top:1px solid #e5e7eb;" />
-
-          <p style="font-size:13px; color:#666; margin-bottom:4px;">
-            Regards,
-          </p>
-          <p style="font-size:14px; font-weight:bold; color:#111;">
-            HealZone Team
-          </p>
-          <p style="font-size:12px; color:#888;">
-            Connecting You to Better Care
-          </p>
-
-        </div>
-      </div>
-    `,
-  });
-
-  console.log("✅ Registration email sent successfully");
-
-} catch (emailError) {
-  console.error("❌ Email sending failed:", emailError.message);
-  // Do NOT fail registration because of email
-}
-
-    return res.status(201).json({
+    res.status(201).json({
       message: "Registration successful. Awaiting admin approval.",
-      vendorId: vendor._id,
+      vendorId: vendor._id
     });
 
   } catch (err) {
-    console.error("❌ REGISTER ERROR:", err);
-    return res.status(500).json({
-      message: "Registration failed",
-      error: err.message,
+    console.error("REGISTER ERROR:", err);
+
+    res.status(500).json({
+      message: "Registration failed"
     });
   }
 });
 
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+router.post("/login", async (req, res) => {
+
+  try {
+
+    const { email, password } = req.body;
+
+    const vendor = await Vendor.findOne({ email });
+
+    if (!vendor) {
+      return res.status(404).json({
+        message: "Vendor not found"
+      });
+    }
+
+    const match = await bcrypt.compare(password, vendor.password);
+
+    if (!match) {
+      return res.status(401).json({
+        message: "Invalid password"
+      });
+    }
+
+    res.json({
+      success: true,
+      role: "vendor",
+      vendor
+    });
+
+  } catch (err) {
+
+    console.error("LOGIN ERROR:", err);
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
+  }
+
+});
+
+
+/* =========================================================
+   GET VENDOR PROFILE
+========================================================= */
+
+router.get("/:id", async (req, res) => {
+
+  try {
+
+    const vendor = await Vendor.findById(req.params.id).select("-password");
+
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      vendor
+    });
+
+  } catch (err) {
+
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+
+  }
+
+});
+
+
+/* =========================================================
+   GET VENDOR SERVICES
+========================================================= */
+
+router.get("/:id/services", async (req, res) => {
+
+  try {
+
+    const vendor = await Vendor.findById(req.params.id);
+
+    if (!vendor) {
+      return res.status(404).json({
+        message: "Vendor not found"
+      });
+    }
+
+    res.json({
+      services: vendor.services || []
+    });
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
+  }
+
+});
+
+
+/* =========================================================
+   GET VENDOR APPOINTMENTS
+========================================================= */
+
+router.get("/:id/appointments", async (req, res) => {
+
+  try {
+
+    const vendor = await Vendor.findById(req.params.id);
+
+    if (!vendor) {
+      return res.status(404).json({
+        message: "Vendor not found"
+      });
+    }
+
+    res.json({
+      appointments: vendor.appointments || []
+    });
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
+  }
+
+});
+
+
+/* =========================================================
+   UPDATE VENDOR PROFILE
+========================================================= */
+
+router.put("/:id/update", upload.single("photo"), async (req, res) => {
+
+  try {
+
+    const updates = req.body;
+
+    if (req.file) {
+      updates.photo = req.file.filename;
+    }
+
+    const vendor = await Vendor.findByIdAndUpdate(
+      req.params.id,
+      updates,
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      vendor
+    });
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: "Update failed"
+    });
+
+  }
+
+});
+
+  /* =========================================================
+   UPDATE VENDOR AVAILABILITY
+========================================================= */
+
+router.put("/:id/availability", async (req, res) => {
+
+  try {
+
+    const { availability } = req.body;
+
+    const vendor = await Vendor.findByIdAndUpdate(
+      req.params.id,
+      {
+        availability: availability
+      },
+      { new: true }
+    );
+
+    if (!vendor) {
+
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found"
+      });
+
+    }
+
+    res.json({
+      success: true,
+      availability: vendor.availability
+    });
+
+  } catch (err) {
+
+    console.error("Availability save error:", err);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+
+  }
+
+});
+
 module.exports = router;
+

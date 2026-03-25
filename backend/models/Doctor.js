@@ -66,6 +66,23 @@ const doctorSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed
     },
 
+    /* ================= CONSULTATION HOURS ================= */
+
+consultation_hours: [
+  {
+    day: {
+      type: String,
+      trim: true
+    },
+    start: {
+      type: String
+    },
+    end: {
+      type: String
+    }
+  }
+],
+
     /* ================= GEO FIELDS ================= */
 
     latitude: Number,

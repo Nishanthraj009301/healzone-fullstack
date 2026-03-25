@@ -2,13 +2,16 @@ const express = require("express");
 const router = express.Router();
 
 const Vendor = require("../models/Vendor");
-const Doctor = require("../models/Doctor");
+const DoctorLive = require("../models/DoctorLive");
 
 /* ================= ADMIN LOGIN ================= */
 router.post("/login", (req, res) => {
   const { username, password } = req.body;
 
-  if (username === "admin" && password === "admin123") {
+  if (
+    username === process.env.ADMIN_USER &&
+    password === process.env.ADMIN_PASS
+  ) {
     return res.json({ success: true });
   }
 
@@ -34,7 +37,7 @@ router.get("/vendors", async (req, res) => {
 
 /* =========================================================
    APPROVE / REJECT VENDOR
-   🔥 APPROVE = PUBLISH TO DOCTORS
+   APPROVE = PUBLISH TO DoctorLive COLLECTION
 ========================================================= */
 router.patch("/vendors/:id", async (req, res) => {
   const { status } = req.body;
@@ -54,27 +57,42 @@ router.patch("/vendors/:id", async (req, res) => {
     vendor.status = status;
     await vendor.save();
 
-    /* ================= CREATE DOCTOR ================= */
+    /* ================= CREATE OR UPDATE DOCTORLIVE ================= */
     if (status === "APPROVED") {
-      const existingDoctor = await Doctor.findOne({
-        vendorId: vendor._id
-      });
 
-      if (!existingDoctor) {
-        console.log(
-          "PUBLISHING VENDOR AS DOCTOR 👉",
-          vendor.name
-        );
+      console.log("SYNCING VENDOR → DOCTORLIVE 👉", vendor.name);
 
-        await Doctor.create({
+      /* ===== LOCATION HANDLING ===== */
+      let location = null;
+
+      if (vendor.location?.coordinates?.length === 2) {
+        location = {
+          type: "Point",
+          coordinates: vendor.location.coordinates
+        };
+      }
+
+      /* ===== MAP AVAILABILITY ===== */
+      const consultationHours = Array.isArray(vendor.availability)
+        ? vendor.availability.map(slot => ({
+            day: slot.day,
+            start: slot.start,
+            end: slot.end
+          }))
+        : [];
+
+      await DoctorLive.findOneAndUpdate(
+        { vendorId: vendor._id },
+        {
           vendorId: vendor._id,
 
-          // 🔥 REQUIRED BY /api/doctors
           name: vendor.name?.trim() || "Unnamed Clinic",
+
           focus_area: vendor.speciality || vendor.category || "General",
           speciality: vendor.speciality || vendor.category || "General",
 
           clinic_name: vendor.name?.trim() || "Clinic",
+
           address1: vendor.address || "",
           city: vendor.state || "",
 
@@ -82,21 +100,27 @@ router.patch("/vendors/:id", async (req, res) => {
           experience: "",
           Rokka: "",
 
-          latitude: null,
-          longitude: null,
+          latitude: vendor.location?.coordinates?.[1] || null,
+          longitude: vendor.location?.coordinates?.[0] || null,
+
+          location,
+
+          consultation_hours: consultationHours,
 
           profile_url: null,
           reviews: null
-        });
-      }
+        },
+        { upsert: true, new: true }
+      );
     }
 
     res.json({
       message:
         status === "APPROVED"
-          ? "Vendor approved and published to doctors"
+          ? "Vendor approved and doctor synced successfully"
           : "Vendor rejected successfully"
     });
+
   } catch (err) {
     console.error("STATUS UPDATE ERROR:", err);
     res.status(500).json({ message: "Update failed" });

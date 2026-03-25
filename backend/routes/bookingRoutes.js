@@ -5,6 +5,7 @@ const {
   createBooking,
   getMyBookings,
   cancelBooking,
+  getVendorBookings 
 } = require("../controllers/bookingController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -20,5 +21,9 @@ router.get("/my", protect, getMyBookings);
 /* ================= CANCEL BOOKING ================= */
 // 🔒 Only owner can cancel
 router.put("/cancel/:id", protect, cancelBooking);
+
+/* ================= VENDOR BOOKINGS ================= */
+// 🔒 Vendor dashboard bookings
+router.get("/vendor", protect, getVendorBookings);
 
 module.exports = router;

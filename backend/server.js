@@ -9,13 +9,20 @@ const vendorRoutes = require("./routes/vendors");
 const adminRoutes = require("./routes/admin");
 const authRoutes = require("./routes/authRoutes");
 
+
 const Doctor = require("./models/Doctor");
+const Booking = require("./models/Booking");
+const Vendor = require("./models/Vendor");
+const path = require("path");
 
 const app = express();
 
+const session = require("express-session");
+
 /* =========================================================
-   🔥 TRUST PROXY (IMPORTANT FOR SECURE COOKIES IN PROD)
+   TRUST PROXY
 ========================================================= */
+
 if (process.env.NODE_ENV === "production") {
   app.set("trust proxy", 1);
 }
@@ -24,11 +31,6 @@ if (process.env.NODE_ENV === "production") {
    MIDDLEWARE
 ========================================================= */
 
-const allowedOrigins = [
-  "http://localhost:3000",           // local development
-  "https://heal-zone.netlify.app",   // production frontend
-];
-
 app.use(
   cors({
     origin: true,
@@ -36,14 +38,11 @@ app.use(
   })
 );
 
-// ✅ Body parsers
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
-
-// ✅ Cookie parser (for JWT in cookies)
 app.use(cookieParser());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ Debug middleware (remove in production)
 if (process.env.NODE_ENV !== "production") {
   app.use((req, res, next) => {
     console.log("➡️ Incoming:", req.method, req.url);
@@ -51,8 +50,35 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
+app.use(
+  session({
+    secret: "healzone-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false
+    }
+  })
+);
+
+
+/* =========================================================
+   ROUTES
+========================================================= */
+
+app.use("/api/auth", authRoutes);
+app.use("/api/vendors", vendorRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/admin", adminRoutes);
+
+
+/* =========================================================
+   HELPER FUNCTIONS
+========================================================= */
+
 function getDistanceInKm(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Earth radius in KM
+  const R = 6371;
+
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
 
@@ -69,239 +95,192 @@ function getDistanceInKm(lat1, lon1, lat2, lon2) {
 }
 
 /* =========================================================
-   ROUTES
+   GENERATE TIME SLOTS
 ========================================================= */
 
-app.use("/api/auth", authRoutes);
-app.use("/api/vendors", vendorRoutes);
-app.use("/api/bookings", bookingRoutes);
-app.use("/api/admin", adminRoutes);
+function generateSlots(start, end, duration = 30) {
 
-/* =========================================================
-   IMPORT BOOKING MODEL
-========================================================= */
+  if (!start || !end) return [];
 
-const Booking = require("./models/Booking");
+  const slots = [];
 
+  const [startHour, startMinute] = start.split(":").map(Number);
+  const [endHour, endMinute] = end.split(":").map(Number);
 
-/* =========================================================
-   AUTOMATION API (GET BOOKINGS FOR AUTOMATION SYSTEM)
-========================================================= */
+  let currentMinutes = startHour * 60 + startMinute;
+  const endMinutes = endHour * 60 + endMinute;
 
-app.get("/api/automation", async (req, res) => {
+  while (currentMinutes < endMinutes) {
 
-  const apiKey = req.headers["x-api-key"];
+    const hours = Math.floor(currentMinutes / 60)
+      .toString()
+      .padStart(2, "0");
 
-  if (!apiKey || apiKey !== process.env.AUTOMATION_API_KEY) {
-    return res.status(401).json({
-      message: "Invalid API key"
-    });
+    const minutes = (currentMinutes % 60)
+      .toString()
+      .padStart(2, "0");
+
+    slots.push(`${hours}:${minutes}`);
+
+    currentMinutes += duration;
   }
 
-  try {
-
-    // Fetch latest 10 confirmed bookings
-    const bookings = await Booking
-      .find({ status: "CONFIRMED" })
-      .populate("user")        // fetch user data
-      .populate("doctorId")    // fetch doctor data
-      .sort({ createdAt: -1 })
-      .limit(10);
-
-    if (bookings.length === 0) {
-      return res.json({
-        message: "No bookings available"
-      });
-    }
-
-    const automationPayload = bookings.map(b => {
-
-      const date = new Date(b.bookingDate)
-        .toISOString()
-        .split("T")[0];
-
-      return {
-        doctorList: [
-          {
-            location: b.doctorId?.city || "",
-            speciality: b.doctorId?.speciality || "",
-            doctorName: b.doctorId?.name || "",
-            dateTime: `${date} ${b.bookingTime}`
-          }
-        ],
-        patientList: [
-          {
-            name: b.user?.name || b.fullName,
-            mobileNumber: b.user?.mobileNumber || "",
-            emailId: b.user?.email || b.email
-          }
-        ]
-      };
-
-    });
-
-    console.log("📤 Automation Payload Sent:");
-    console.log(JSON.stringify(automationPayload, null, 2));
-
-    res.json({
-      totalBookings: automationPayload.length,
-      bookings: automationPayload
-    });
-
-  } catch (error) {
-
-    console.error(error);
-
-    res.status(500).json({
-      message: "Server error"
-    });
-
-  }
-
-});
-/* =========================================================
-   HEALTH CHECK
-========================================================= */
-
-app.get("/", (req, res) => {
-  res.send("Healzone backend running 🚀");
-});
-
-/* =========================================================
-   EMAIL TEST ROUTE
-========================================================= */
-
-app.get("/test-email", async (req, res) => {
-  try {
-    const sendEmail = require("./utils/sendEmail");
-
-    await sendEmail({
-      to: "yourpersonalemail@gmail.com", // change this
-      subject: "Test Email from HealZone",
-      html: "<h1>Email system is working ✅</h1>",
-    });
-
-    res.send("Email sent successfully");
-  } catch (err) {
-    console.error("EMAIL TEST ERROR:", err);
-    res.status(500).send(err.message);
-  }
-});
-
-/* =========================================================
-   HELPER: Normalize Excel-style consultation_hours
-========================================================= */
-
-function normalizeConsultationHours(doc) {
-  const hours = [];
-
-  Object.keys(doc).forEach((key) => {
-    if (key.startsWith("consultation_hours[")) {
-      const h = doc[key];
-
-      if (h && (h.from || h.to)) {
-        hours.push({
-          day: h.day,
-          from: h.from,
-          to: h.to,
-        });
-      }
-    }
-  });
-
-  return hours;
+  return slots;
 }
 
 /* =========================================================
-   GET DOCTORS (STRICT FILTER + 10KM PRIORITY + A-Z SORT)
+   NORMALIZE CONSULTATION HOURS
+========================================================= */
+
+function normalizeConsultationHours(doc) {
+
+  const hours = [];
+
+  /* ================= VENDOR AVAILABILITY ================= */
+
+  if (Array.isArray(doc.availability)) {
+
+    doc.availability.forEach(h => {
+
+      if (h && h.start && h.end) {
+
+        hours.push({
+          day: h.day,
+          from: h.start,
+          to: h.end
+        });
+
+      }
+
+    });
+
+  }
+
+  /* ================= NEW VENDOR CONSULTATION FORMAT ================= */
+
+  if (Array.isArray(doc.consultation_hours)) {
+
+    doc.consultation_hours.forEach(h => {
+
+      if (h && (h.from || h.start || h.to || h.end)) {
+
+        hours.push({
+          day: h.day,
+          from: h.start || h.from,
+          to: h.end || h.to
+        });
+
+      }
+
+    });
+
+  }
+
+  /* ================= EXCEL OBJECT FORMAT ================= */
+
+  Object.keys(doc).forEach((key) => {
+
+    if (key.startsWith("consultation_hours[") && typeof doc[key] === "object") {
+
+      const h = doc[key];
+
+      if (h && (h.from || h.to)) {
+
+        hours.push({
+          day: h.day,
+          from: h.from,
+          to: h.to
+        });
+
+      }
+
+    }
+
+  });
+
+  return hours;
+
+}
+
+/* =========================================================
+   GET DOCTORS (LIST)
 ========================================================= */
 
 app.get("/api/doctors", async (req, res, next) => {
-  console.log("🔥 NEW VERSION RUNNING");
+
   try {
+
     const { speciality, country, city, lat, lng, search } = req.query;
 
     let filter = {
       name: { $exists: true, $ne: "" },
     };
 
-    // =====================================================
-// ✅ Speciality Filter
-// =====================================================
-if (speciality) {
-  const normalized = speciality.trim();
+    if (speciality) {
+      const normalized = speciality.trim();
 
-  filter.$or = [
-    { speciality: { $regex: normalized, $options: "i" } },
-    { focus_area: { $regex: `^${normalized}`, $options: "i" } }
-  ];
-}
+      filter.$or = [
+        { speciality: { $regex: normalized, $options: "i" } },
+        { focus_area: { $regex: `^${normalized}`, $options: "i" } }
+      ];
+    }
 
-// =====================================================
-// ✅ Global Search (Name + Speciality + Focus Area)
-// =====================================================
-if (search) {
-  const q = search.trim();
+    if (search) {
+      const q = search.trim();
 
-  const searchCondition = {
-    $or: [
-      { name: { $regex: q, $options: "i" } },
-      { speciality: { $regex: q, $options: "i" } },
-      { focus_area: { $regex: q, $options: "i" } }
-    ]
-  };
+      const searchCondition = {
+        $or: [
+          { name: { $regex: q, $options: "i" } },
+          { speciality: { $regex: q, $options: "i" } },
+          { focus_area: { $regex: q, $options: "i" } }
+        ]
+      };
 
-  // If speciality already exists, combine both
-  if (filter.$or) {
-    filter = {
-      ...filter,
-      $and: [
-        { $or: filter.$or },
-        searchCondition
-      ]
-    };
-    delete filter.$or;
-  } else {
-    Object.assign(filter, searchCondition);
-  }
-}
-    // =====================================================
-// ✅ Country Filter
-// =====================================================
-if (country) {
-  filter.country = { $regex: country, $options: "i" };
-}
+      if (filter.$or) {
+        filter = {
+          ...filter,
+          $and: [
+            { $or: filter.$or },
+            searchCondition
+          ]
+        };
+        delete filter.$or;
+      } else {
+        Object.assign(filter, searchCondition);
+      }
+    }
 
-// =====================================================
-// ✅ City Filter
-// =====================================================
-if (city) {
-  filter.$or = [
-    { city: { $regex: city, $options: "i" } },
-    { state: { $regex: city, $options: "i" } }
-  ];
-}
+    if (country) {
+      filter.country = { $regex: country, $options: "i" };
+    }
 
-    // =====================================================
-    // FETCH DOCTORS (Single Query Only)
-    // =====================================================
+    if (city) {
+      filter.$or = [
+        { city: { $regex: city, $options: "i" } },
+        { state: { $regex: city, $options: "i" } }
+      ];
+    }
 
-    console.log("Applied Filter:", filter);
-    let rows = await Doctor.find(filter)
-      .collation({ locale: "en", strength: 2 })
-      .lean();
+    /* FETCH FROM BOTH COLLECTIONS */
 
-    // =====================================================
-    // ✅ IF LOCATION PROVIDED → PRIORITIZE 10KM
-    // =====================================================
+ const doctors = await Doctor.find(filter).lean();
+const vendors = await Vendor.find({ status: "APPROVED" }).lean();
+
+let rows = [...doctors, ...vendors];
+
+    /* DISTANCE SORT */
+
     if (lat && lng) {
+
       const userLat = parseFloat(lat);
       const userLng = parseFloat(lng);
 
       rows = rows.map((doc) => {
+
         let distance = Infinity;
 
-        if (doc.location && doc.location.coordinates) {
+        if (doc.location?.coordinates) {
+
           const [docLng, docLat] = doc.location.coordinates;
 
           distance = getDistanceInKm(
@@ -313,10 +292,11 @@ if (city) {
         }
 
         return { ...doc, distance };
+
       });
 
-      // Sort: within 10km first, then alphabetical
       rows.sort((a, b) => {
+
         const aInRange = a.distance <= 10;
         const bInRange = b.distance <= 10;
 
@@ -324,39 +304,41 @@ if (city) {
         if (!aInRange && bInRange) return 1;
 
         return a.name.localeCompare(b.name);
+
       });
+
     } else {
-      // No location → just alphabetical
+
       rows.sort((a, b) => a.name.localeCompare(b.name));
+
     }
 
-    // =====================================================
-    // MAP RESPONSE (Prevent duplicate names)
-    // =====================================================
     res.json(
   rows.map((d) => ({
-    id: d._id.toString(),
-    name: d.name,
-    speciality:
-      d.focus_area || d.speciality || "Specialization not listed",
-    hospital: d.clinic_name || "",
-    address1: d.address1 || "",
-    city: d.city || "",
-    zip_code: d.zip_code || "",
-    latitude: d.latitude || null,
-    longitude: d.longitude || null,
-    Rokka: d.Rokka,
-    experience: d.experience || "",
-    about: d.discription || "",
-    profile_url:
-      d.profile_url && d.profile_url.trim() !== ""
-        ? d.profile_url
-        : null,
-  }))
-);
+    _id: d._id.toString(),
+        name: d.name,
+        speciality:
+          d.focus_area || d.speciality || "Specialization not listed",
+        hospital: d.clinic_name || "",
+        address1: d.address1 || "",
+        city: d.city || "",
+        zip_code: d.zip_code || "",
+        latitude: d.latitude || null,
+        longitude: d.longitude || null,
+        Rokka: d.Rokka,
+        experience: d.experience || "",
+        about: d.discription || "",
+        profile_url:
+          d.profile_url && d.profile_url.trim() !== ""
+            ? d.profile_url
+            : null,
+      }))
+    );
+
   } catch (err) {
     next(err);
   }
+
 });
 
 /* =========================================================
@@ -365,40 +347,148 @@ if (city) {
 
 app.get("/api/doctors/:id", async (req, res, next) => {
   try {
-    const row = await Doctor.findById(req.params.id);
+    const doctorId = req.params.id;
+    const date = req.query.date;
 
+    console.log("Requested doctor ID:", doctorId);
+
+    let row = null;
+
+    /* 1️⃣ FIRST CHECK DOCTORS COLLECTION */
+    row = await Doctor.findById(doctorId);
+
+    /* 2️⃣ IF NOT FOUND, CHECK VENDORS COLLECTION */
+    if (!row) {
+      row = await Vendor.findById(doctorId);
+    }
+
+    /* 3️⃣ IF STILL NOT FOUND */
     if (!row) {
       return res.status(404).json({ message: "Doctor not found" });
     }
 
-    const consultationHours = normalizeConsultationHours(row._doc);
+    console.log("Doctor loaded from:", row.constructor.modelName);
+
+    /* =========================================================
+       NORMALIZE CONSULTATION HOURS (SUPPORT BOTH FORMATS)
+    ========================================================= */
+
+    let consultationHours = [];
+
+    if (row.availability && row.availability.length > 0) {
+      // ✅ Vendor format
+      consultationHours = row.availability.map(a => ({
+        day: a.day,
+        from: a.start,
+        to: a.end
+      }));
+    } else {
+      // ✅ Practo / old format
+      consultationHours = normalizeConsultationHours(row._doc || row);
+    }
+
+    console.log("Consultation Hours:", consultationHours);
+
+    /* =========================================================
+       GENERATE ALL SLOTS (SAFE)
+    ========================================================= */
+
+    let slots = consultationHours.map(h => {
+      if (!h.from || !h.to) {
+        return { day: h.day, slots: [] };
+      }
+
+      const generatedSlots = generateSlots(h.from, h.to);
+
+      console.log("Generating slots from:", h.from, "to", h.to);
+      console.log("Generated slots:", generatedSlots);
+
+      return {
+        day: h.day,
+        slots: generatedSlots
+      };
+    });
+
+    /* =========================================================
+       REMOVE BOOKED SLOTS
+    ========================================================= */
+
+    if (date) {
+      const bookings = await Booking.find({
+        doctorId: doctorId,
+        date: date
+      }).lean();
+
+      const bookedSlots = bookings.map(b => b.slot);
+
+      slots = slots.map(daySlots => ({
+        day: daySlots.day,
+        slots: daySlots.slots.filter(
+          s => !bookedSlots.includes(s)
+        )
+      }));
+    }
+
+    /* =========================================================
+       IMAGE HANDLING (SUPPORT BOTH)
+    ========================================================= */
+
+    let profileUrl = null;
+
+    if (row.profile_url && row.profile_url.trim() !== "") {
+      // ✅ External or stored URL
+      profileUrl = row.profile_url;
+    } else if (row.photo) {
+      // ✅ Local uploaded image
+      profileUrl = `/uploads/${row.photo}`;
+    }
+
+    /* =========================================================
+       RESPONSE (UNIFIED)
+    ========================================================= */
 
     const doctor = {
       _id: row._id.toString(),
       name: row.name,
+
       speciality:
         row.focus_area || row.speciality || "Specialization not listed",
+
       focus_area: row.focus_area || "",
       about: row.discription || "",
       reviews: row.reviews || null,
-      Rokka: row.Rokka,
+
+      // ✅ Fee support both
+      Rokka: row.Rokka || row.consultationFee || 0,
+
       experience: row.experience || "",
-      profile_url:
-        row.profile_url && row.profile_url.trim() !== ""
-          ? row.profile_url
-          : null,
-      address1: row.address1 || row.address || row.clinic_address || "",
+
+      profile_url: profileUrl,
+
+      address1: row.address1 || row.address || "",
       city: row.city || "",
       zip_code: row.zip_code || "",
-      latitude: row.latitude || null,
-      longitude: row.longitude || null,
+
+      latitude: row.latitude || row.location?.coordinates?.[1] || null,
+      longitude: row.longitude || row.location?.coordinates?.[0] || null,
+
       consultation_hours: consultationHours,
+      slots: slots
     };
 
     res.json(doctor);
+
   } catch (err) {
     next(err);
   }
+});
+
+/* =========================================================
+   HEALTH CHECK
+========================================================= */
+
+app.get("/", (req, res) => {
+  res.send("Healzone backend running 🚀");
 });
 
 /* =========================================================
@@ -406,6 +496,7 @@ app.get("/api/doctors/:id", async (req, res, next) => {
 ========================================================= */
 
 app.use((err, req, res, next) => {
+
   console.error("🔥 GLOBAL ERROR:", err.message);
 
   res.status(500).json({
@@ -415,10 +506,11 @@ app.use((err, req, res, next) => {
         ? undefined
         : err.message,
   });
+
 });
 
 /* =========================================================
-   MONGODB CONNECTION + START SERVER
+   START SERVER
 ========================================================= */
 
 const PORT = process.env.PORT || 5000;
@@ -426,11 +518,13 @@ const PORT = process.env.PORT || 5000;
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
+
     console.log("✅ MongoDB Connected");
 
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
+
   })
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);

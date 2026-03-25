@@ -1,6 +1,7 @@
 const Booking = require("../models/Booking");
 const Doctor = require("../models/Doctor");
 const sendEmail = require("../utils/sendEmail");
+const Vendor = require("../models/Vendor");
 
 /* =========================================================
    CREATE BOOKING (Protected Route Required)
@@ -37,13 +38,15 @@ exports.createBooking = async (req, res) => {
 
     /* ================= FETCH DOCTOR ================= */
 
-    const doctor = await Doctor.findById(doctorId);
+    let doctor = await Doctor.findById(doctorId);
 
-    if (!doctor) {
-      return res.status(404).json({
-        message: "Doctor not found",
-      });
-    }
+if (!doctor) {
+  doctor = await Vendor.findById(doctorId);
+}
+
+if (!doctor) {
+  return res.status(404).json({ message: "Doctor not found" });
+}
 
     /* ================= PREVENT DOUBLE BOOKING ================= */
 
@@ -68,8 +71,8 @@ exports.createBooking = async (req, res) => {
       // 🔐 attach logged-in user
       user: req.user._id,
 
-      vendorId: vendorId || null,
-      doctorId,
+      vendorId: doctor.vendorId || doctor._id,
+doctorId,
 
       bookingDate: new Date(bookingDate),
       bookingTime,
@@ -196,5 +199,35 @@ exports.getMyBookings = async (req, res) => {
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+/* =========================================================
+   GET BOOKINGS FOR VENDOR DASHBOARD
+========================================================= */
+exports.getVendorBookings = async (req, res) => {
+  try {
+
+    const bookings = await Booking.find({
+      vendorId: req.user._id
+    })
+    .populate("user", "name email")
+    .populate("doctorId", "name speciality")
+    .sort({ bookingDate: 1 });
+
+    res.json({
+      success: true,
+      appointments: bookings
+    });
+
+  } catch (error) {
+
+    console.error("Vendor bookings error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch bookings"
+    });
+
   }
 };
