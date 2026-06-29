@@ -18,9 +18,7 @@ export default function DoctorProfile() {
 
     async function fetchDoctor() {
       try {
-        const res = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/doctors/${id}?t=${Date.now()}`
-        );
+        const res = await fetch(`https://www.heal-zone.com/api/doctors/${id}?t=${Date.now()}`);
         if (!res.ok) throw new Error("Doctor not found");
 
         const data = await res.json();
@@ -81,7 +79,7 @@ function Hero({ doctor }) {
   const imageUrl = doctor.profile_url
   ? doctor.profile_url.startsWith("http")
     ? doctor.profile_url
-    : `http://localhost:5000${doctor.profile_url}`
+    : doctor.profile_url
   : "/doctor-placeholder.png";
 
   const name =
@@ -366,15 +364,14 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
     };
 
     try {
-      const res = await fetch(
-  `${process.env.REACT_APP_API_URL}/api/bookings/create`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(payload),
-        }
-      );
+      const res = await fetch("https://www.heal-zone.com/api/bookings/create", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${user?.token}`, // 👈 ADD THIS
+  },
+  body: JSON.stringify(payload),
+});
 
       const data = await res.json();
 
@@ -402,11 +399,11 @@ function BookingModal({ open, onClose, doctor, date, time, fee }) {
         ],
       };
 
-      await fetch(`${process.env.REACT_APP_API_URL}/api/automation`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(automationPayload),
-      });
+      await fetch("https://www.heal-zone.com/api/automation", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(automationPayload),
+});
 
       /* GOOGLE CALENDAR */
       if (googleAccessToken) {

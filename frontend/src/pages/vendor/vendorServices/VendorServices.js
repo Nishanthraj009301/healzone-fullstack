@@ -20,7 +20,7 @@ export default function VendorServices() {
       return;
     }
 
-    fetch(`http://localhost:5000/api/vendors/${storedUser._id}`)
+    fetch(`https://www.heal-zone.com/api/vendors/${storedUser._id}`)
       .then(res => res.json())
       .then(data => {
 
@@ -75,7 +75,7 @@ export default function VendorServices() {
     try {
 
       const res = await fetch(
-        `http://localhost:5000/api/vendors/${storedUser._id}/services/${serviceId}`,
+        `https://www.heal-zone.com/api/vendors/${storedUser._id}/services/${serviceId}`,
         {
           method: "DELETE"
         }

@@ -326,29 +326,74 @@
   color: #0f172a;
 }
 
-/* =========================================================
-   MOBILE
-========================================================= */
 
-@media (max-width: 900px) {
-  .profile-card {
-    grid-template-columns: 1fr;
-    padding: 26px;
+@media (max-width: 768px) {
+
+  /* ===== MAIN CARD ===== */
+  .doctor-profile-page .profile-card {
+    grid-template-columns: 1fr;   /* 🔥 STACK */
+    padding: 20px;
+    gap: 20px;
+    border-radius: 16px;
   }
 
+  /* ===== REMOVE STICKY (VERY IMPORTANT) ===== */
+  .profile-booking {
+    position: static;
+  }
+
+  /* ===== HERO SECTION ===== */
   .profile-hero {
-    flex-direction: column;
+    flex-direction: column;       /* 🔥 stack image + text */
     align-items: center;
     text-align: center;
+    gap: 16px;
   }
 
   .profile-hero img {
-    width: 180px;
-    height: 220px;
+    width: 120px;
+    height: 140px;
+    border-radius: 16px;
   }
 
-  .profile-booking {
-    position: relative;
-    top: auto;
+  .hero-text h1 {
+    font-size: 20px;
   }
+
+  .hero-text p {
+    font-size: 14px;
+  }
+
+  /* ===== BOOKING CARD ===== */
+  .booking-sticky {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  /* ===== TIME SLOTS ===== */
+  .booking-slots {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .slot {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  /* ===== BUTTON ===== */
+  .cta {
+    height: 46px;
+    font-size: 14px;
+  }
+
+  /* ===== SECTIONS ===== */
+  .profile-section h3 {
+    font-size: 16px;
+  }
+
+  .profile-section p {
+    font-size: 14px;
+  }
+
 }

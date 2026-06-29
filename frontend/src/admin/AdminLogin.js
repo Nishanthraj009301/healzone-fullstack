@@ -31,7 +31,7 @@ export default function AdminLogin() {
 
   try {
     const res = await fetch(
-  `${process.env.REACT_APP_API_URL}/api/admin/login`,
+  `https://www.heal-zone.com/api/admin/login`,
   {
     method: "POST",
     headers: {

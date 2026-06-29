@@ -15,7 +15,7 @@ useEffect(()=>{
 
 const fetchUser = async () =>{
  const res = await fetch(
-   `${process.env.REACT_APP_API_URL}/api/auth/me`,
+   `https://www.heal-zone.com/api/auth/me`,
    {credentials:"include"}
  );
 
@@ -25,7 +25,7 @@ const fetchUser = async () =>{
 
 const fetchAppointments = async () =>{
  const res = await fetch(
-   `${process.env.REACT_APP_API_URL}/api/bookings/my`,
+   `https://www.heal-zone.com/api/bookings/my`,
    {credentials:"include"}
  );
 

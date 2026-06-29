@@ -148,3 +148,44 @@ grid-template-columns:1fr;
 }
 
 }
+
+.availability-main {
+  flex: 1;
+  padding: 30px 40px;
+  color: #e5e7eb;
+}
+
+.availability-header h1 {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.availability-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.availability-card {
+  background: #111827;
+  border: 1px solid #1f2a44;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.time-inputs {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.save-btn {
+  margin-top: 25px;
+  padding: 12px;
+  width: 200px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6366f1, #22d3ee);
+  color: white;
+  cursor: pointer;
+}

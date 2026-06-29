@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import "./DoctorList.css";
 import Loader from "./loader/Loader";
 
+
+
 /* ================= HELPERS ================= */
 
 function renderConsultationText(Rokka) {
@@ -34,6 +36,8 @@ useEffect(() => {
   const lng = searchParams.get("lng");
   const search = searchParams.get("search");
 
+
+
   if (speciality) params.append("speciality", speciality);
   if (country) params.append("country", country);
   if (city) params.append("city", city);
@@ -44,14 +48,22 @@ useEffect(() => {
 
   // const url = `${process.env.REACT_APP_API_URL}/api/doctors?${params.toString()}`;
 
-  const url = `http://localhost:5000/api/doctors?${params.toString()}`;
+  const url = `https://www.heal-zone.com/api/doctors?${params.toString()}`;
 
   // console.log("Fetching doctors from:", url); // 🔥 DEBUG
 
   setLoading(true);
 
   fetch(url)
-    .then((res) => res.json())
+  .then((res) => {
+    console.log("STATUS:", res.status);
+
+    if (!res.ok) {
+      throw new Error("API failed");
+    }
+
+    return res.json();
+  })
     .then((data) => {
       // console.log("Doctors response:", data); // 🔥 DEBUG
       setDoctors(Array.isArray(data) ? data : []);

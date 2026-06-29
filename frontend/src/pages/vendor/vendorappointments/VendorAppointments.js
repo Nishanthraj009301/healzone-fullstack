@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./VendorAppointments.css";
 
-const API = process.env.REACT_APP_API_URL;
 
 export default function VendorAppointments() {
 
@@ -43,7 +42,7 @@ export default function VendorAppointments() {
     try {
 
       const res = await fetch(
-  `${API}/api/vendors/${vendorId}`
+  `https://www.heal-zone.com/api/vendors/${vendorId}`
 );
 
       const data = await res.json();
@@ -66,7 +65,7 @@ export default function VendorAppointments() {
     try {
 
       const res = await fetch(
-  `${API}/api/bookings/vendor`
+  `https://www.heal-zone.com/api/bookings/vendor`
 );
 
       const data = await res.json();

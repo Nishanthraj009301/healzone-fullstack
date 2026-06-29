@@ -28,7 +28,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
 
   const handleGoogleLogin = async (credentialResponse) => {
     try {
-      const url = `${process.env.REACT_APP_API_URL}/api/auth/google/patient`;
+      const url = `https://www.heal-zone.com/api/auth/google/patient`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -43,7 +43,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
 
       if (res.ok) {
         const userRes = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/auth/me`,
+          `https://www.heal-zone.com/api/auth/me`,
           { credentials: "include" }
         );
 
@@ -65,7 +65,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
 
   const handleLogin = async () => {
   try {
-    const url = `${process.env.REACT_APP_API_URL}/api/auth/login`;
+    const url = `https://www.heal-zone.com/api/auth/login`;
 
     const res = await fetch(url, {
       method: "POST",
@@ -82,7 +82,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
 
     if (res.ok) {
       const userRes = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/auth/me`,
+        `https://www.heal-zone.com/api/auth/me`,
         { credentials: "include" }
       );
 
@@ -118,7 +118,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
     }
 
     try {
-      const url = `${process.env.REACT_APP_API_URL}/api/auth/register`;
+      const url = `https://www.heal-zone.com/api/auth/register`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -138,7 +138,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
 
       if (res.ok) {
         const userRes = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/auth/me`,
+          `https://www.heal-zone.com/api/auth/me`,
           { credentials: "include" }
         );
 
@@ -301,7 +301,7 @@ export default function LoginModal({ show, onClose, onSuccess }) {
               onClick={async () => {
                 try {
                   const res = await fetch(
-                    `${process.env.REACT_APP_API_URL}/api/auth/forgot-password`,
+                    `https://www.heal-zone.com/api/auth/forgot-password`,
                     {
                       method: "POST",
                       headers: {

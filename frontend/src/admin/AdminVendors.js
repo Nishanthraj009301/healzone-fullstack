@@ -20,7 +20,7 @@ export default function AdminVendors() {
     async function fetchVendors() {
       try {
         const res = await fetch(
-  `${process.env.REACT_APP_API_URL}/api/admin/vendors`);
+  `https://www.heal-zone.com/api/admin/vendors`);
         const data = await res.json();
 
         if (!res.ok) {
@@ -43,7 +43,7 @@ export default function AdminVendors() {
   async function updateStatus(id, status) {
     try {
       const res = await fetch(
-  `${process.env.REACT_APP_API_URL}/api/admin/vendors/${id}`,
+  `https://www.heal-zone.com/api/admin/vendors/${id}`,
   {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

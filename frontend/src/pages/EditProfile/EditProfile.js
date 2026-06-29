@@ -20,7 +20,7 @@ useEffect(()=>{
 
 const fetchUser = async () =>{
  const res = await fetch(
-   `${process.env.REACT_APP_API_URL}/api/auth/me`,
+   `https://www.heal-zone.com/api/auth/me`,
    {credentials:"include"}
  );
 
@@ -46,7 +46,7 @@ const handleSubmit = async (e)=>{
  e.preventDefault();
 
  const res = await fetch(
-   `${process.env.REACT_APP_API_URL}/api/auth/update-profile`,
+   `https://www.heal-zone.com/api/auth/update-profile`,
    {
     method:"PUT",
     headers:{

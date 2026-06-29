@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./VendorProfile.css";
 
 export default function VendorProfile() {
+
+  const navigate = useNavigate();
 
   const [vendor, setVendor] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -19,13 +22,16 @@ export default function VendorProfile() {
   /* ================= FETCH PROFILE ================= */
 
   useEffect(() => {
-
     const user = JSON.parse(localStorage.getItem("user"));
 
-    fetch(`http://localhost:5000/api/vendors/${user._id}`)
+    if (!user || !user._id) {
+      navigate("/");
+      return;
+    }
+
+    fetch(`https://www.heal-zone.com/api/vendors/${user._id}`)
       .then(res => res.json())
       .then(data => {
-
         setVendor(data.vendor);
 
         setFormData({
@@ -35,10 +41,8 @@ export default function VendorProfile() {
           address: data.vendor.address || "",
           speciality: data.vendor.speciality || ""
         });
-
       });
-
-  }, []);
+  }, [navigate]);
 
   /* ================= PROFILE COMPLETION ================= */
 
@@ -59,19 +63,16 @@ export default function VendorProfile() {
   const updateProfile = async () => {
 
     const user = JSON.parse(localStorage.getItem("user"));
-
     const form = new FormData();
 
     Object.keys(formData).forEach(key => {
       form.append(key, formData[key]);
     });
 
-    if (photo) {
-      form.append("photo", photo);
-    }
+    if (photo) form.append("photo", photo);
 
     const res = await fetch(
-      `http://localhost:5000/api/vendors/${user._id}/update`,
+      `https://www.heal-zone.com/api/vendors/${user._id}/update`,
       {
         method: "PUT",
         body: form
@@ -83,142 +84,173 @@ export default function VendorProfile() {
     if (data.success) {
       setVendor(data.vendor);
       setEditMode(false);
-      alert("Profile updated");
     }
+  };
 
+  const logout = () => {
+    localStorage.removeItem("user");
+    navigate("/");
   };
 
   if (!vendor) return <div>Loading...</div>;
 
   return (
+    <div className="dashboard">
 
-    <div className="vendor-profile">
+      {/* SIDEBAR */}
+      <aside className="sidebar">
 
-      {/* ================= HEADER WITH LOGO ================= */}
-
-      <div className="profile-header">
-
-        <img
-          src="/healonelogo.png"
-          alt="HealZone"
-          className="profile-logo"
-        />
-
-        <h1>Vendor Profile</h1>
-
-      </div>
-
-
-      {/* ================= PROFILE COMPLETION ================= */}
-
-      <div className="profile-completion">
-
-        <p>Profile Completion: {completion}%</p>
-
-        <div className="progress-bar">
-          <div
-            className="progress"
-            style={{ width: `${completion}%` }}
-          />
+        <div className="logo">
+          <img src="/healonelogo.png" alt="logo" />
         </div>
 
-      </div>
+        <div className="menu">
+          <button onClick={() => navigate("/vendor/dashboard")}>🏠</button>
+          <button onClick={() => navigate("/vendor/services")}>🩺</button>
+          <button onClick={() => navigate("/vendor/appointments")}>📅</button>
+          <button onClick={() => navigate("/vendor/availability")}>⏰</button>
+          <button onClick={() => navigate("/vendor/profile")}>👤</button>
+        </div>
 
+        {/* LOGOUT */}
+        <button className="logout" onClick={logout}>
+        
+        Logout
+        </button>
 
-      {/* ================= PROFILE CARD ================= */}
+      </aside>
 
-      <div className="profile-card">
+      {/* MAIN */}
+      <main className="profile-main">
 
-        <div className="profile-photo">
+        {/* HEADER */}
+        <div className="profile-top">
 
-          {vendor.photo ? (
-            <img
-              src={`http://localhost:5000/uploads/${vendor.photo}`}
-              alt="profile"
-            />
-          ) : (
-            <div className="photo-placeholder">
-              {vendor.firstName?.charAt(0)}
+          <div className="profile-left">
+            {vendor.photo ? (
+              <img
+                src={`https://www.heal-zone.com/uploads/${vendor.photo}`}
+                alt="profile"
+                className="avatar"
+              />
+            ) : (
+              <div className="avatar-placeholder">
+                {vendor.firstName?.charAt(0)}
+              </div>
+            )}
+
+            <div>
+              <h2>{vendor.firstName} {vendor.lastName}</h2>
+              <p>{vendor.speciality || "No speciality added"}</p>
             </div>
-          )}
+          </div>
 
-          {editMode && (
-            <input
-              type="file"
-              onChange={(e) => setPhoto(e.target.files[0])}
-            />
-          )}
-
-        </div>
-
-
-        <div className="profile-details">
-
-          {editMode ? (
-
-            <>
-              <input
-                value={formData.firstName}
-                onChange={(e) =>
-                  setFormData({ ...formData, firstName: e.target.value })
-                }
-              />
-
-              <input
-                value={formData.lastName}
-                onChange={(e) =>
-                  setFormData({ ...formData, lastName: e.target.value })
-                }
-              />
-
-              <input
-                value={formData.mobile}
-                onChange={(e) =>
-                  setFormData({ ...formData, mobile: e.target.value })
-                }
-              />
-
-              <input
-                value={formData.speciality}
-                onChange={(e) =>
-                  setFormData({ ...formData, speciality: e.target.value })
-                }
-              />
-
-              <input
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-              />
-
-              <button onClick={updateProfile}>
-                Save
-              </button>
-            </>
-
-          ) : (
-
-            <>
-              <p><b>Name:</b> {vendor.firstName} {vendor.lastName}</p>
-              <p><b>Email:</b> {vendor.email}</p>
-              <p><b>Phone:</b> {vendor.mobile}</p>
-              <p><b>Speciality:</b> {vendor.speciality}</p>
-              <p><b>Address:</b> {vendor.address}</p>
-
-              <button onClick={() => setEditMode(true)}>
-                Edit Profile
-              </button>
-            </>
-
-          )}
+          <button
+            onClick={() => setEditMode(!editMode)}
+            className="edit-toggle"
+          >
+            {editMode ? "Cancel" : "Edit Profile"}
+          </button>
 
         </div>
 
-      </div>
+        {/* PROGRESS */}
+        <div className="profile-progress">
+          <div className="progress-info">
+            <span>Profile Completion</span>
+            <span>{completion}%</span>
+          </div>
 
+          <div className="progress-bar">
+            <div className="progress" style={{ width: `${completion}%` }} />
+          </div>
+        </div>
+
+        {/* GRID */}
+        <div className="profile-grid">
+
+          {/* BASIC INFO */}
+          <div className="card">
+            <h3>Basic Info</h3>
+
+            {editMode ? (
+              <>
+                <input
+                  placeholder="First Name"
+                  value={formData.firstName}
+                  onChange={(e)=>setFormData({...formData, firstName:e.target.value})}
+                />
+
+                <input
+                  placeholder="Last Name"
+                  value={formData.lastName}
+                  onChange={(e)=>setFormData({...formData, lastName:e.target.value})}
+                />
+
+                <input
+                  placeholder="Mobile"
+                  value={formData.mobile}
+                  onChange={(e)=>setFormData({...formData, mobile:e.target.value})}
+                />
+
+                <button onClick={updateProfile}>Save</button>
+              </>
+            ) : (
+              <>
+                <div className="info-row">
+  <span className="label">Name</span>
+  <span className="value">{vendor.firstName} {vendor.lastName}</span>
+</div>
+
+<div className="info-row">
+  <span className="label">Email</span>
+  <span className="value">{vendor.email}</span>
+</div>
+
+<div className="info-row">
+  <span className="label">Phone</span>
+  <span className="value">{vendor.mobile}</span>
+</div>
+              </>
+            )}
+          </div>
+
+          {/* PROFESSIONAL */}
+          <div className="card">
+            <h3>Professional Details</h3>
+
+            {editMode ? (
+              <>
+                <input
+                  placeholder="Speciality"
+                  value={formData.speciality}
+                  onChange={(e)=>setFormData({...formData, speciality:e.target.value})}
+                />
+
+                <input
+                  placeholder="Address"
+                  value={formData.address}
+                  onChange={(e)=>setFormData({...formData, address:e.target.value})}
+                />
+              </>
+            ) : (
+              <>
+                <div className="info-row">
+  <span className="label">Speciality</span>
+  <span className="value">{vendor.speciality}</span>
+</div>
+
+<div className="info-row">
+  <span className="label">Address</span>
+  <span className="value">{vendor.address}</span>
+</div>
+              </>
+            )}
+          </div>
+
+        </div>
+
+      </main>
     </div>
-
   );
-
 }

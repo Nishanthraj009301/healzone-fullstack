@@ -10,7 +10,7 @@ export default function ResetPassword() {
   const handleReset = async () => {
     try {
       const res = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/auth/reset-password/${token}`,
+        `https://www.heal-zone.com/api/auth/reset-password/${token}`,
         {
           method: "POST",
           headers: {

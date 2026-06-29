@@ -18,6 +18,9 @@ import VendorProfile from "./pages/vendor/VendorProfile";
 import VendorServices from "./pages/vendor/vendorServices/VendorServices";
 import VendorAvailability from "./pages/vendor/vendorAvailability/VendorAvailability";
 import VendorAppointments from "./pages/vendor/vendorappointments/VendorAppointments";
+import SalonsPage from "./pages/SalonsPage";
+import SpasPage from "./pages/SpasPage";
+import SalonDetailsPage from "./pages/styles/SalonDetailsPage";
 
 // ================= ADMIN =================
 import AdminLogin from "./admin/AdminLogin";
@@ -86,6 +89,9 @@ function App() {
                   <Route path="/vendor/services" element={<VendorServices />} />
                   <Route path="/vendor/availability" element={<VendorAvailability />} />
                   <Route path="/vendor/appointments" element={<VendorAppointments />} />
+                  <Route path="/salons" element={<SalonsPage />} />
+                  <Route path="/salon/:id" element={<SalonDetailsPage />} />
+<Route path="/spas" element={<SpasPage />} />
                   <Route
                     path="*"
                     element={

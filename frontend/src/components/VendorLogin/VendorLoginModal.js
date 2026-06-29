@@ -34,7 +34,7 @@ export default function VendorLoginModal({ show, onClose }) {
 
     try {
 
-      const url = `${process.env.REACT_APP_API_URL}/api/auth/google/vendor`;
+      const url = `https://www.heal-zone.com/api/auth/google/vendor`;
 
       const res = await fetch(url, {
         method: "POST",
@@ -50,7 +50,7 @@ export default function VendorLoginModal({ show, onClose }) {
       if (res.ok) {
 
         const userRes = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/auth/me`,
+          `https://www.heal-zone.com/api/auth/me`,
           { credentials: "include" }
         );
 
@@ -79,7 +79,7 @@ const handleLogin = async () => {
   try {
 
     const res = await fetch(
-      `${process.env.REACT_APP_API_URL}/api/vendors/login`,
+      `https://www.heal-zone.com/api/vendors/login`,
       {
         method: "POST",
         headers: {

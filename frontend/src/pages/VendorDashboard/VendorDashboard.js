@@ -2,36 +2,22 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./VendorDashboard.css";
 
-const API = process.env.REACT_APP_API_URL;
-
 export default function VendorDashboard() {
 
   const navigate = useNavigate();
 
   const [vendor, setVendor] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const [stats, setStats] = useState({
-    services: 0,
-    appointments: 0
-  });
-
-  
-
-  /* ================= GREETING BASED ON TIME ================= */
+  const [loaded, setLoaded] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const getGreeting = () => {
-
     const hour = new Date().getHours();
-
     if (hour < 12) return "Good morning";
     if (hour < 17) return "Good afternoon";
     if (hour < 21) return "Good evening";
-
     return "Good night";
   };
-
-  /* ================= DAILY MOTIVATIONAL MESSAGE ================= */
 
   const dailyMessages = [
     "Have a great and productive day",
@@ -44,14 +30,9 @@ export default function VendorDashboard() {
   ];
 
   const todayIndex = new Date().getDate() % dailyMessages.length;
-
   const todayMessage = dailyMessages[todayIndex];
 
-
-  /* ================= AUTH CHECK ================= */
-
   useEffect(() => {
-
     const storedUser = localStorage.getItem("user");
 
     if (!storedUser) {
@@ -68,156 +49,118 @@ export default function VendorDashboard() {
 
     fetchVendor(parsedUser._id);
 
+    setTimeout(() => setLoaded(true), 400);
+
   }, [navigate]);
 
-
-  /* ================= FETCH VENDOR DATA ================= */
-
   const fetchVendor = async (vendorId) => {
-
     try {
-
       const res = await fetch(
-        `${API}/api/vendors/${vendorId}`
+        `https://www.heal-zone.com/api/vendors/${vendorId}`
       );
 
       const data = await res.json();
 
       if (data.success) {
-
         setVendor(data.vendor);
-
-        setStats({
-          services: Array.isArray(data.vendor.services)
-            ? data.vendor.services.length
-            : data.vendor.services
-            ? 1
-            : 0,
-          appointments: data.vendor.appointments?.length || 0
-        });
-
       }
-
     } catch (err) {
-
       console.error("Vendor fetch error:", err);
-
     }
 
     setLoading(false);
-
   };
-
-
-  /* ================= LOGOUT ================= */
 
   const logout = () => {
-
     localStorage.removeItem("user");
-
     navigate("/");
-
   };
 
+  /* ===== SEARCH FILTER LOGIC ===== */
 
-  /* ================= LOADING ================= */
+  const filteredAppointments = vendor?.appointments?.filter((appt) =>
+    appt?.patientName?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const filteredServices = vendor?.services?.filter((service) =>
+    service?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const stats = {
+    appointments: searchTerm
+      ? filteredAppointments.length
+      : vendor?.appointments?.length || 0,
+
+    services: searchTerm
+      ? filteredServices.length
+      : Array.isArray(vendor?.services)
+      ? vendor.services.length
+      : vendor?.services
+      ? 1
+      : 0
+  };
 
   if (loading) {
     return (
       <div className="vendor-dashboard-loading">
+        <div className="loader"></div>
         Loading dashboard...
       </div>
     );
   }
 
-
   return (
-
-    <div className="dashboard">
+    <div className={`dashboard ${loaded ? "show" : ""}`}>
 
       {/* SIDEBAR */}
-
       <aside className="sidebar">
-
         <div className="logo">
           <img src="/healonelogo.png" alt="HealZone Logo" />
         </div>
 
         <div className="menu">
-
-          <button onClick={() => navigate("/vendor/dashboard")} title="Dashboard">
-            🏠
-          </button>
-
-          <button onClick={() => navigate("/vendor/services")} title="Services">
-            🩺
-          </button>
-
-          <button onClick={() => navigate("/vendor/appointments")} title="Appointments">
-            📅
-          </button>
-
-          <button onClick={() => navigate("/vendor/availability")} title="Availability">
-            ⏰
-          </button>
-
-          <button onClick={() => navigate("/vendor/profile")} title="Profile">
-            👤
-          </button>
-
+          <button onClick={() => navigate("/vendor/dashboard")}>🏠</button>
+          <button onClick={() => navigate("/vendor/services")}>🩺</button>
+          <button onClick={() => navigate("/vendor/appointments")}>📅</button>
+          <button onClick={() => navigate("/vendor/availability")}>⏰</button>
+          <button onClick={() => navigate("/vendor/profile")}>👤</button>
         </div>
 
-        <button className="logout" onClick={logout}>
-  Logout
-</button>
-
+        <button className="logout" onClick={logout}>Logout</button>
       </aside>
 
-
-      {/* MAIN AREA */}
-
+      {/* MAIN */}
       <main className="main">
-
-        {/* TOP BAR */}
 
         <div className="topbar">
 
-          <input
-            className="search"
-            placeholder="Search..."
-          />
+          {/* SEARCH */}
+          <div className="search-box">
+            <input
+              className="search"
+              placeholder="Search patient or service..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <button className="search-btn">🔍</button>
+          </div>
 
           <div className="profile">
             {vendor?.firstName || vendor?.name}
           </div>
-
         </div>
-
-
-        {/* CONTENT GRID */}
 
         <div className="grid">
 
-          {/* LEFT PANEL */}
-
+          {/* LEFT */}
           <div className="left">
 
-            {/* GREETING */}
-
             <div className="welcome">
-
               <h2>
-                {getGreeting()} {vendor?.firstName}
+                {getGreeting()} <span>{vendor?.firstName}</span> 👋
               </h2>
-
-              <p>
-                {todayMessage}
-              </p>
-
+              <p>{todayMessage}</p>
             </div>
-
-
-            {/* ACTION CARDS */}
 
             <div className="actions">
 
@@ -229,7 +172,6 @@ export default function VendorDashboard() {
                 </button>
               </div>
 
-
               <div className="action-card">
                 <h3>Services</h3>
                 <h1>{stats.services}</h1>
@@ -240,25 +182,11 @@ export default function VendorDashboard() {
 
             </div>
 
-
-            {/* STATISTICS */}
-
-            <div className="stats">
-
-              <h3>Patient Statistics</h3>
-
-              <div className="chart-placeholder"></div>
-
-            </div>
-
           </div>
 
-
-          {/* RIGHT PANEL */}
-
+          {/* RIGHT */}
           <div className="right">
-
-            <h3>Today's Schedule</h3>
+            <h3>Today's Overview</h3>
 
             <div className="schedule-item">
               <span>Appointments</span>
@@ -273,11 +201,7 @@ export default function VendorDashboard() {
           </div>
 
         </div>
-
       </main>
-
     </div>
-
   );
-
 }

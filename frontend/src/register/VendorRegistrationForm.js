@@ -272,7 +272,7 @@ const [formData, setFormData] = useState({
     /* API CALL */
 
     const res = await fetch(
-      `${process.env.REACT_APP_API_URL}/api/vendors/register`,
+      `https://www.heal-zone.com/api/vendors/register`,
       {
         method: "POST",
         body: formPayload

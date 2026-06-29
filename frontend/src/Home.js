@@ -62,154 +62,154 @@ export default function Home() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showVendorLogin, setShowVendorLogin] = useState(false);
 
-const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
 
 
-const {
-  selectedCountry,
-  setSelectedCountry,
-  selectedCity,
-  setSelectedCity,
-} = useContext(LocationContext);
-const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const {
+    selectedCountry,
+    setSelectedCountry,
+    selectedCity,
+    setSelectedCity,
+  } = useContext(LocationContext);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
-const [filteredResults, setFilteredResults] = useState([]);
-const [showSuggestions, setShowSuggestions] = useState(false);
-// 🔥 Store GPS coordinates
-const [userLat, setUserLat] = useState(null);
-const [userLng, setUserLng] = useState(null);
+  const [filteredResults, setFilteredResults] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  // 🔥 Store GPS coordinates
+  const [userLat, setUserLat] = useState(null);
+  const [userLng, setUserLng] = useState(null);
 
-const detectLocation = () => {
-  if (!navigator.geolocation) {
-    alert("Geolocation is not supported by your browser");
-    return;
-  }
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
 
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
-      setUserLat(lat);
-      setUserLng(lng);
+        setUserLat(lat);
+        setUserLng(lng);
 
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
-          {
-            headers: {
-              "Accept": "application/json",
-            },
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+            {
+              headers: {
+                "Accept": "application/json",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Reverse API failed");
           }
-        );
 
-        if (!response.ok) {
-          throw new Error("Reverse API failed");
-        }
+          const data = await response.json();
 
-        const data = await response.json();
+          const country = data?.address?.country;
+          const city =
+            data?.address?.city ||
+            data?.address?.town ||
+            data?.address?.village ||
+            data?.address?.state;
 
-        const country = data?.address?.country;
-        const city =
-          data?.address?.city ||
-          data?.address?.town ||
-          data?.address?.village ||
-          data?.address?.state;
+          if (country) {
+            setSelectedCountry(country);
+          }
 
-        if (country) {
-          setSelectedCountry(country);
-        }
+          if (city) {
+            setSelectedCity(city);
+          } else {
+            setSelectedCity("Current Location");
+          }
 
-        if (city) {
-          setSelectedCity(city);
-        } else {
+        } catch (error) {
+          console.error("Reverse geocoding failed:", error);
+
+          // fallback if reverse fails
+          setSelectedCountry("Detected Location");
           setSelectedCity("Current Location");
         }
 
-      } catch (error) {
-        console.error("Reverse geocoding failed:", error);
-
-        // fallback if reverse fails
-        setSelectedCountry("Detected Location");
-        setSelectedCity("Current Location");
+        setShowLocationDropdown(false);
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        alert("Unable to retrieve your location");
       }
+    );
+  };
 
-      setShowLocationDropdown(false);
-    },
-    (error) => {
-      console.error("Geolocation error:", error);
-      alert("Unable to retrieve your location");
-    }
-  );
-};
-
-const medicalFields = [
-  "Ayurveda",
-  "Dentist",
-  "Dermatologist",
-  "Cardiologist",
-  "Neurologist",
-  "Orthopedic",
-  "Pediatrician",
-  "Psychiatrist",
-  "Gynecologist",
-  "ENT Specialist",
-  "Diabetologist",
-  "Oncologist",
-  "Urologist",
-  "Nephrologist",
-  "Dietician",
-  "Physiotherapist",
-  "General Physician",
-  "Pulmonologist",
-  "Radiologist",
-  "Endocrinologist",
-  "Gastroenterologist",
-  "Dental Implants",
-  "Dental Cleaning",
-  "Depression Therapy",
-  "De-addiction Therapy"
-];
+  const medicalFields = [
+    "Ayurveda",
+    "Dentist",
+    "Dermatologist",
+    "Cardiologist",
+    "Neurologist",
+    "Orthopedic",
+    "Pediatrician",
+    "Psychiatrist",
+    "Gynecologist",
+    "ENT Specialist",
+    "Diabetologist",
+    "Oncologist",
+    "Urologist",
+    "Nephrologist",
+    "Dietician",
+    "Physiotherapist",
+    "General Physician",
+    "Pulmonologist",
+    "Radiologist",
+    "Endocrinologist",
+    "Gastroenterologist",
+    "Dental Implants",
+    "Dental Cleaning",
+    "Depression Therapy",
+    "De-addiction Therapy"
+  ];
 
 
   /* ================= CHECK LOGIN ================= */
   useEffect(() => {
-  checkUser();
-}, []);
+    checkUser();
+  }, []);
 
 
-const checkUser = async () => {
-  try {
-    const res = await fetch(
-  `${process.env.REACT_APP_API_URL}/api/auth/me`,
-  {
-    credentials: "include", // IMPORTANT for cookies
-  }
-);
+  const checkUser = async () => {
+    try {
+      const res = await fetch(
+        `https://www.heal-zone.com/api/auth/me`,
+        {
+          credentials: "include", // IMPORTANT for cookies
+        }
+      );
 
-    if (res.ok) {
-      const data = await res.json();
-      setUser(data);
-    } else {
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else {
+        setUser(null);
+      }
+    } catch (err) {
       setUser(null);
     }
-  } catch (err) {
-    setUser(null);
-  }
-};
+  };
 
   const handleLogout = async () => {
-  await fetch(
-    `${process.env.REACT_APP_API_URL}/api/auth/logout`,
-    {
-      method: "POST",
-      credentials: "include",
-    }
-  );
+    await fetch(
+      `https://www.heal-zone.com/api/auth/logout`,
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
 
-  setUser(null);
-};
+    setUser(null);
+  };
 
   const navigateWithLoader = (path) => {
     setTimeout(() => {
@@ -222,7 +222,7 @@ const checkUser = async () => {
     async function fetchDoctors() {
       try {
         const res = await fetch(
-          `${process.env.REACT_APP_API_URL}/api/doctors`
+          `https://www.heal-zone.com/api/doctors`
         );
         const data = await res.json();
 
@@ -278,54 +278,54 @@ const checkUser = async () => {
               </div>
 
               {/* ===== LOGIN / USER DISPLAY ===== */}
-{user ? (
-  <div className="user-menu">
-    <div
-      className="user-avatar"
-      onClick={() => setShowUserMenu(!showUserMenu)}
-    >
-      {user.name?.charAt(0).toUpperCase()}
-    </div>
+              {user ? (
+                <div className="user-menu">
+                  <div
+                    className="user-avatar"
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                  >
+                    {user.name?.charAt(0).toUpperCase()}
+                  </div>
 
-    {showUserMenu && (
-      <div className="user-dropdown">
-        <button
-          onClick={() => {
-            navigate("/dashboard");
-            setShowUserMenu(false);
-          }}
-        >
-          Dashboard
-        </button>
+                  {showUserMenu && (
+                    <div className="user-dropdown">
+                      <button
+                        onClick={() => {
+                          navigate("/dashboard");
+                          setShowUserMenu(false);
+                        }}
+                      >
+                        Dashboard
+                      </button>
 
-        <button
-          onClick={() => {
-            handleLogout();
-            setShowUserMenu(false);
-          }}
-        >
-          Logout
-        </button>
-      </div>
-    )}
-  </div>
-) : (
-  <div className="auth-buttons">
-  <button
-    className="login"
-    onClick={() => setShowLogin(true)}
-  >
-    Login
-  </button>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setShowUserMenu(false);
+                        }}
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="auth-buttons">
+                  <button
+                    className="login"
+                    onClick={() => setShowLogin(true)}
+                  >
+                    Userlogin
+                  </button>
 
-  <button
-  className="login"
-  onClick={() => setShowVendorLogin(true)}
->
-  Vendor Login
-</button>
-</div>
-)}
+                  <button
+                    className="login"
+                    onClick={() => setShowVendorLogin(true)}
+                  >
+                    Vendor Login
+                  </button>
+                </div>
+              )}
 
 
             </nav>
@@ -334,167 +334,167 @@ const checkUser = async () => {
       </header>
 
       {/* ================= HERO ================= */}
-<section className="hz-hero">
-  <h1>
-    One Platform for <span>Health & Wellness</span>
-  </h1>
+      <section className="hz-hero">
+        <h1>
+          One Platform for <span>Health & Wellness</span>
+        </h1>
 
-  <p>
-    Doctors, therapy, fitness, wellness, and personal care —
-    all in one place.
-  </p>
+        <p>
+          Doctors, therapy, fitness, wellness, and personal care —
+          all in one place.
+        </p>
 
-  {/* ===== HERO SEARCH ===== */}
-  <div className="hero-search-container">
-    <div className="hero-search">
+        {/* ===== HERO SEARCH ===== */}
+        <div className="hero-search-container">
+          <div className="hero-search">
 
-      {/* Location */}
-      <div className="location-section">
-  <div
-    className="location-display"
-    onClick={() => setShowLocationDropdown(!showLocationDropdown)}
-  >
-    📍 {selectedCity || selectedCountry}
-  </div>
+            {/* Location */}
+            <div className="location-section">
+              <div
+                className="location-display"
+                onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+              >
+                📍 {selectedCity || selectedCountry}
+              </div>
 
-  {showLocationDropdown && (
-    <div className="location-dropdown">
+              {showLocationDropdown && (
+                <div className="location-dropdown">
 
-      <div
-  className="dropdown-item"
-  onMouseDown={detectLocation}
->
-        📡 Use Current Location
-      </div>
+                  <div
+                    className="dropdown-item"
+                    onMouseDown={detectLocation}
+                  >
+                    📡 Use Current Location
+                  </div>
 
-      <div className="dropdown-divider"></div>
+                  <div className="dropdown-divider"></div>
 
-      <div
-        className="dropdown-item"
-        onClick={() => {
-          setSelectedCountry("United States");
-          setSelectedCity("");
-          setShowLocationDropdown(false);
-        }}
-      >
-        🇺🇸 United States
-      </div>
+                  <div
+                    className="dropdown-item"
+                    onClick={() => {
+                      setSelectedCountry("United States");
+                      setSelectedCity("");
+                      setShowLocationDropdown(false);
+                    }}
+                  >
+                    🇺🇸 United States
+                  </div>
 
-      <div
-        className="dropdown-item"
-        onClick={() => {
-          setSelectedCountry("India");
-          setSelectedCity("");
-          setShowLocationDropdown(false);
-        }}
-      >
-        🇮🇳 India
-      </div>
+                  <div
+                    className="dropdown-item"
+                    onClick={() => {
+                      setSelectedCountry("India");
+                      setSelectedCity("");
+                      setShowLocationDropdown(false);
+                    }}
+                  >
+                    🇮🇳 India
+                  </div>
 
-      <div
-        className="dropdown-item"
-        onClick={() => {
-          setSelectedCountry("Malaysia");
-          setSelectedCity("");
-          setShowLocationDropdown(false);
-        }}
-      >
-        🇲🇾 Malaysia
-      </div>
+                  <div
+                    className="dropdown-item"
+                    onClick={() => {
+                      setSelectedCountry("Malaysia");
+                      setSelectedCity("");
+                      setShowLocationDropdown(false);
+                    }}
+                  >
+                    🇲🇾 Malaysia
+                  </div>
 
-    </div>
-  )}
-</div>
+                </div>
+              )}
+            </div>
 
-      <div className="divider"></div>
+            <div className="divider"></div>
 
-      {/* Search Input */}
-      <div className="search-section">
-  <input
-    type="text"
-    value={searchQuery}
-    onChange={(e) => {
-      const value = e.target.value;
-      setSearchQuery(value);
+            {/* Search Input */}
+            <div className="search-section">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSearchQuery(value);
 
-      if (value.trim().length > 0) {
-        const matches = medicalFields.filter((item) =>
-          item.toLowerCase().includes(value.toLowerCase())
-        );
+                  if (value.trim().length > 0) {
+                    const matches = medicalFields.filter((item) =>
+                      item.toLowerCase().includes(value.toLowerCase())
+                    );
 
-        setFilteredResults(matches);
-        setShowSuggestions(true);
-      } else {
-        setShowSuggestions(false);
-      }
-    }}
-    onFocus={() => searchQuery && setShowSuggestions(true)}
-    placeholder="Search doctors, clinics, services..."
-  />
+                    setFilteredResults(matches);
+                    setShowSuggestions(true);
+                  } else {
+                    setShowSuggestions(false);
+                  }
+                }}
+                onFocus={() => searchQuery && setShowSuggestions(true)}
+                placeholder="Search doctors, clinics, services..."
+              />
 
-  {showSuggestions && filteredResults.length > 0 && (
-    <div className="suggestions-dropdown">
-      {filteredResults.map((item, index) => (
-        <div
-          key={index}
-          className="suggestion-item"
-          onClick={() => {
-            setSearchQuery(item);
-            setShowSuggestions(false);
-          }}
-        >
-          {item}
+              {showSuggestions && filteredResults.length > 0 && (
+                <div className="suggestions-dropdown">
+                  {filteredResults.map((item, index) => (
+                    <div
+                      key={index}
+                      className="suggestion-item"
+                      onClick={() => {
+                        setSearchQuery(item);
+                        setShowSuggestions(false);
+                      }}
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Search Button */}
+            <button
+              className="search-button"
+              onClick={() => {
+
+                /* NEW: if no speciality but location selected → show specialities */
+                if (!searchQuery.trim() && (selectedCountry || selectedCity || (userLat && userLng))) {
+                  navigate("/specialities");
+                  return;
+                }
+
+                let url = "/doctors?";
+
+                /* If user typed speciality */
+                if (searchQuery.trim()) {
+                  url += `speciality=${encodeURIComponent(searchQuery)}`;
+                } else {
+                  /* If no search text → use location filters */
+
+                  if (selectedCountry) {
+                    url += `country=${encodeURIComponent(selectedCountry)}&`;
+                  }
+
+                  if (
+                    selectedCity &&
+                    selectedCity !== "Current Location" &&
+                    selectedCity !== "Karnataka"
+                  ) {
+                    url += `city=${encodeURIComponent(selectedCity)}&`;
+                  }
+
+                  if (userLat && userLng) {
+                    url += `lat=${userLat}&lng=${userLng}&`;
+                  }
+                }
+
+                navigate(url);
+              }}
+            >
+              Search
+            </button>
+
+          </div>
         </div>
-      ))}
-    </div>
-  )}
-</div>
-
-      {/* Search Button */}
-<button
-  className="search-button"
-  onClick={() => {
-
-    /* NEW: if no speciality but location selected → show specialities */
-    if (!searchQuery.trim() && (selectedCountry || selectedCity || (userLat && userLng))) {
-      navigate("/specialities");
-      return;
-    }
-
-    let url = "/doctors?";
-
-    /* If user typed speciality */
-    if (searchQuery.trim()) {
-      url += `speciality=${encodeURIComponent(searchQuery)}`;
-    } else {
-      /* If no search text → use location filters */
-
-      if (selectedCountry) {
-        url += `country=${encodeURIComponent(selectedCountry)}&`;
-      }
-
-      if (
-        selectedCity &&
-        selectedCity !== "Current Location" &&
-        selectedCity !== "Karnataka"
-      ) {
-        url += `city=${encodeURIComponent(selectedCity)}&`;
-      }
-
-      if (userLat && userLng) {
-        url += `lat=${userLat}&lng=${userLng}&`;
-      }
-    }
-
-    navigate(url);
-  }}
->
-  Search
-</button>
-
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* ================= SERVICES ================= */}
       <section className="hz-services">
@@ -529,9 +529,9 @@ const checkUser = async () => {
         </div>
 
         <div
-          className="card green clickable"
-          onClick={() => setComingSoon("Spa & Retreats")}
-        >
+  className="card green clickable"
+  onClick={() => navigate("/spas")}
+> 
           <Icon type="spa" />
           <h3>Spa & Retreats</h3>
           <p>Relax and rejuvenate at top-rated retreats.</p>
@@ -539,9 +539,9 @@ const checkUser = async () => {
         </div>
 
         <div
-          className="card pink clickable"
-          onClick={() => setComingSoon("Beauty Parlour")}
-        >
+  className="card pink clickable"
+  onClick={() => navigate("/salons")}
+>
           <Icon type="beauty" />
           <h3>Beauty Parlour</h3>
           <p>Book beauty and wellness treatments near you.</p>
@@ -556,9 +556,9 @@ const checkUser = async () => {
           <div className="slider-track">
             {[...doctors, ...doctors].map((doc, index) => (
               <div
-                key={`${doc.id}-${index}`}
+                key={`${doc._id}-${index}`}
                 className="doctor-simple-card"
-                onClick={() => navigate(`/doctor/${doc.id}`)}
+                onClick={() => navigate(`/doctor/${doc._id}`)}
               >
                 <div className="doctor-image-wrapper">
                   <img
@@ -605,25 +605,25 @@ const checkUser = async () => {
         </div>
       )}
 
-    {/* ================= MODALS ================= */}
+      {/* ================= MODALS ================= */}
 
-<LoginModal
-  show={showLogin}
-  onClose={() => setShowLogin(false)}
-  onSuccess={async () => {
-    await checkUser();
-    setShowLogin(false);
-  }}
-/>
+      <LoginModal
+        show={showLogin}
+        onClose={() => setShowLogin(false)}
+        onSuccess={async () => {
+          await checkUser();
+          setShowLogin(false);
+        }}
+      />
 
-<VendorLoginModal
-  show={showVendorLogin}
-  onClose={() => setShowVendorLogin(false)}
-  onSuccess={async () => {
-    await checkUser();
-    setShowVendorLogin(false);
-  }}
-/>
+      <VendorLoginModal
+        show={showVendorLogin}
+        onClose={() => setShowVendorLogin(false)}
+        onSuccess={async () => {
+          await checkUser();
+          setShowVendorLogin(false);
+        }}
+      />
     </div>
   );
 }

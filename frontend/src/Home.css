@@ -67,8 +67,14 @@ body {
 .hz-header-right {
   display: flex;
   justify-content: flex-end;
-  align-self: flex-start;
-  padding-top: 4px;
+  align-items: center;
+  gap: 16px;   /* 🔥 better spacing */
+}
+
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;   /* 🔥 THIS fixes your main issue */
 }
 
 /* NAV */
@@ -689,3 +695,127 @@ body {
   background: #f3f4f6;
 }
 
+
+/* ================= MOBILE RESPONSIVE FIXES ================= */
+
+@media (max-width: 768px) {
+
+  /* ===== HEADER ===== */
+  .hz-header-inner {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .hz-header-left {
+    justify-content: center;
+    margin-left: 0;
+  }
+
+  .hz-header-right {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .hz-nav {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .auth-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .auth-buttons button {
+    width: 100%;
+  }
+
+  .hz-logo img {
+    height: 50px;
+  }
+
+  /* ===== HERO ===== */
+  .hz-hero {
+    padding: 0 16px;
+  }
+
+  .hz-hero h1 {
+    font-size: 1.6rem;
+    line-height: 1.3;
+  }
+
+  .hz-hero p {
+    font-size: 0.85rem;
+  }
+
+  /* ===== SEARCH BAR ===== */
+  .hero-search {
+    flex-direction: column;
+    border-radius: 16px;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .location-section,
+  .search-section {
+    width: 100%;
+    padding: 8px;
+  }
+
+  .divider {
+    display: none;
+  }
+
+  .search-button {
+    width: 100%;
+  }
+
+  /* ===== SERVICES (CARDS) ===== */
+  .hz-services {
+    grid-template-columns: 1fr;   /* 🔥 ONE CARD PER ROW */
+    padding: 0 16px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  /* ===== DOCTOR SECTION ===== */
+@media (max-width: 768px) {
+
+  /* ===== REMOVE SLIDER BEHAVIOR ===== */
+  .slider-wrapper {
+    overflow: visible;
+  }
+
+  .slider-track {
+    display: flex;
+    flex-direction: column;   /* 🔥 STACK VERTICALLY */
+    gap: 16px;
+    width: 100%;
+    animation: none;
+  }
+
+  /* ===== DOCTOR CARD FULL WIDTH ===== */
+  .doctor-simple-card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+}
+
+  /* ===== RECOMMENDED TITLE ===== */
+  .hz-recommended h2 {
+    font-size: 1.4rem;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer,
+  .footer-columns {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+}
