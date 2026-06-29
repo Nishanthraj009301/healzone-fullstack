@@ -369,7 +369,7 @@ onSuccess={() => {
     try {
 
       const response = await fetch(
-        "http://localhost:5000/api/salon-bookings",
+        "https://www.heal-zone.com/api/salon-bookings",
         {
           method: "POST",
           credentials: "include", // send JWT cookie
