@@ -111,67 +111,127 @@ exports.createSalonBooking = async (req, res) => {
         to: booking.customerEmail,
         subject: "HealZone – Salon Booking Confirmed",
         html: `
-          <div style="font-family: Arial; background:#f4f6f9; padding:40px 20px;">
-            <div style="max-width:600px; margin:0 auto; background:#ffffff; padding:30px; border-radius:10px;">
+<div style="font-family:Arial,Helvetica,sans-serif;background:#f4f6f9;padding:40px 20px;">
+  <div style="max-width:650px;margin:auto;background:#ffffff;border-radius:10px;padding:30px;box-shadow:0 2px 8px rgba(0,0,0,.1);">
 
-              <h2 style="color:#2563eb;">
-                Salon Booking Confirmed 💇
-              </h2>
+    <div style="text-align:center;">
+      <h1 style="color:#2563eb;margin-bottom:5px;">
+        HealZone
+      </h1>
 
-              <p>Hello <strong>${booking.customerName}</strong>,</p>
+      <h2 style="color:#16a34a;margin-top:0;">
+        ✅ Salon Booking Confirmed
+      </h2>
+    </div>
 
-              <p>Your salon appointment has been successfully booked.</p>
+    <p>Hello <strong>${booking.customerName}</strong>,</p>
 
-              <hr>
+    <p>
+      Thank you for booking with <strong>HealZone</strong>.
+      Your salon appointment has been successfully confirmed.
+    </p>
 
-              <h3>Salon Details</h3>
+    <hr style="margin:25px 0;">
 
-              <p><strong>Salon:</strong> ${booking.salonName}</p>
+    <h3 style="color:#2563eb;">💇 Salon Details</h3>
 
-              <p><strong>Address:</strong> ${salonAddress}</p>
+    <table style="width:100%;border-collapse:collapse;">
 
-              ${
-                mapsLink
-                  ? `
-                  <a href="${mapsLink}"
-                     target="_blank"
-                     style="
-                        display:inline-block;
-                        padding:10px 18px;
-                        background:#2563eb;
-                        color:white;
-                        text-decoration:none;
-                        border-radius:6px;
-                        margin-top:10px;">
-                     📍 View Location
-                  </a>
-                  `
-                  : ""
-              }
+      <tr>
+        <td style="padding:8px;"><strong>Salon</strong></td>
+        <td>${booking.salonName}</td>
+      </tr>
 
-              <hr>
+      <tr>
+        <td style="padding:8px;"><strong>Address</strong></td>
+        <td>${salonAddress}</td>
+      </tr>
 
-              <h3>Booking Details</h3>
+    </table>
 
-              <p><strong>Service:</strong> ${booking.serviceName}</p>
+    ${
+      mapsLink
+        ? `
+        <div style="margin-top:15px;">
+          <a href="${mapsLink}"
+             target="_blank"
+             style="
+               background:#2563eb;
+               color:white;
+               padding:10px 18px;
+               border-radius:6px;
+               text-decoration:none;
+               display:inline-block;">
+             📍 View on Google Maps
+          </a>
+        </div>
+        `
+        : ""
+    }
 
-              <p><strong>Price:</strong> ₹${booking.servicePrice}</p>
+    <hr style="margin:25px 0;">
 
-              <p><strong>Date:</strong> ${booking.bookingDate.toDateString()}</p>
+    <h3 style="color:#2563eb;">📅 Booking Details</h3>
 
-              <p><strong>Time:</strong> ${booking.bookingTime}</p>
+    <table style="width:100%;border-collapse:collapse;">
 
-              <p><strong>Booking Reference:</strong> ${booking.referenceNumber}</p>
+      <tr>
+        <td style="padding:8px;"><strong>Service</strong></td>
+        <td>${booking.serviceName}</td>
+      </tr>
 
-              <hr>
+      <tr>
+        <td style="padding:8px;"><strong>Price</strong></td>
+        <td>₹${booking.servicePrice}</td>
+      </tr>
 
-              <p>
-                Thank you for choosing <strong>HealZone</strong>.
-              </p>
+      <tr>
+        <td style="padding:8px;"><strong>Date</strong></td>
+        <td>${booking.bookingDate.toDateString()}</td>
+      </tr>
 
-            </div>
-          </div>
-        `,
+      <tr>
+        <td style="padding:8px;"><strong>Time</strong></td>
+        <td>${booking.bookingTime}</td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px;"><strong>Booking Reference</strong></td>
+        <td>${booking.referenceNumber}</td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px;"><strong>Status</strong></td>
+        <td style="color:green;font-weight:bold;">
+          ${booking.status}
+        </td>
+      </tr>
+
+    </table>
+
+    <hr style="margin:25px 0;">
+
+    <p>
+      Please arrive <strong>10–15 minutes before</strong> your scheduled appointment.
+    </p>
+
+    <p>
+      If you need to cancel or reschedule your appointment, you can do so from your HealZone account.
+    </p>
+
+    <br>
+
+    <p>
+      Thank you for choosing <strong>HealZone</strong>.
+    </p>
+
+    <p style="color:#777;font-size:13px;">
+      This is an automated email. Please do not reply.
+    </p>
+
+  </div>
+</div>
+`,
       });
     } catch (emailError) {
       console.error("Email failed:", emailError.message);
