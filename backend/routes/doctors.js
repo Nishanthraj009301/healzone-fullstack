@@ -81,8 +81,8 @@ router.get("/:id", async (req, res) => {
 
           // IMAGE
           profile_url: vendor.photo
-            ? `http://localhost:5000/uploads/${vendor.photo}`
-            : null,
+  ? `${API}/uploads/${vendor.photo}`
+  : null,
 
           // ADDRESS
           address1: vendor.address || "",

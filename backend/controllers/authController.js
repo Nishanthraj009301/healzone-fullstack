@@ -12,30 +12,30 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateToken = (res, userId) => {
 
-const isProduction = process.env.NODE_ENV === "production";
+  console.log("========== GENERATE TOKEN ==========");
+  console.log("User ID:", userId);
 
-const token = jwt.sign(
-{ id: userId },
-process.env.JWT_SECRET,
-{ expiresIn: "365d" }
-);
+  const isProduction = process.env.NODE_ENV === "production";
+  console.log("NODE_ENV:", process.env.NODE_ENV);
 
-res.cookie("token", token, {
-httpOnly: true,
-secure: isProduction,       // production
-sameSite: isProduction ? "none" : "lax",
-maxAge: 365 * 24 * 60 * 60 * 1000,
-path: "/",
-});
+  const token = jwt.sign(
+    { id: userId },
+    process.env.JWT_SECRET,
+    { expiresIn: "365d" }
+  );
 
-// res.cookie("token", token, {
-//   httpOnly: true,
-//   secure: false,        // localhost
-//   sameSite: "lax",      // ✅ CORRECT
-//   maxAge: 365 * 24 * 60 * 60 * 1000,
-//   path: "/",
-// });
+  console.log("JWT Generated:", token.substring(0, 30) + "...");
 
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 365 * 24 * 60 * 60 * 1000,
+  });
+
+  console.log("Cookie sent successfully");
+  console.log("==============================");
 };
 
 /* ================= REGISTER (PATIENT) ================= */

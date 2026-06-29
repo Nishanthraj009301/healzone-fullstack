@@ -13,6 +13,9 @@ const authRoutes = require("./routes/authRoutes");
 const Doctor = require("./models/Doctor");
 const Booking = require("./models/Booking");
 const Vendor = require("./models/Vendor");
+const Salon = require("./models/Salon");
+const salonBookingRoutes = require("./routes/salonBookingRoutes");
+const Spa = require("./models/Spa");
 const path = require("path");
 
 const app = express();
@@ -31,9 +34,20 @@ if (process.env.NODE_ENV === "production") {
    MIDDLEWARE
 ========================================================= */
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://www.heal-zone.com"
+];
+
 app.use(
   cors({
-    origin: true,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
@@ -70,6 +84,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/vendors", vendorRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/salon-bookings", salonBookingRoutes);
 
 
 /* =========================================================
@@ -483,6 +498,95 @@ app.get("/api/doctors/:id", async (req, res, next) => {
   }
 });
 
+/*========================================================
+Salon API
+=========================================================*/
+app.get("/api/salons", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const skip = (page - 1) * limit;
+
+    const salons = await Salon.find({})
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await Salon.countDocuments();
+
+    res.json({
+      salons,
+      page,
+      total,
+      hasMore: skip + salons.length < total,
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/*========================================================
+Salon Single API
+=========================================================*/
+app.get("/api/salons/:id", async (req, res) => {
+  try {
+
+    const salon = await Salon.findById(req.params.id);
+
+    if (!salon) {
+      return res.status(404).json({
+        message: "Salon not found"
+      });
+    }
+
+    res.json(salon);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/*========================================================
+Spa  API
+=========================================================*/
+app.get("/api/spas", async (req, res) => {
+  try {
+
+    const spas = await Spa.find({})
+      .limit(20)
+      .lean();
+
+    res.json(spas);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/*========================================================
+Spa  Single API
+=========================================================*/
+app.get("/api/spas/:id", async (req, res) => {
+  try {
+
+    const spa = await Spa.findById(req.params.id);
+
+    if (!spa) {
+      return res.status(404).json({
+        message: "Spa not found"
+      });
+    }
+
+    res.json(spa);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+
 /* =========================================================
    HEALTH CHECK
 ========================================================= */
@@ -514,6 +618,8 @@ app.use((err, req, res, next) => {
 ========================================================= */
 
 const PORT = process.env.PORT || 5000;
+
+console.log("Mongo URI:", process.env.MONGO_URI);
 
 mongoose
   .connect(process.env.MONGO_URI)

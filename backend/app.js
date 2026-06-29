@@ -9,8 +9,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 const allowedOrigins = [
-  "http://localhost:3000",          // ✅ local dev
-  "https://heal-zone.netlify.app"   // ✅ production
+  "http://localhost:3000",
+  "https://www.heal-zone.com"
 ];
 
 app.use(
