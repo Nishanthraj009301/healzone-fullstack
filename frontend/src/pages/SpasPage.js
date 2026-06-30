@@ -1,139 +1,225 @@
-import React, { useEffect, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
+
+import { useNavigate } from "react-router-dom";
+
+import "./SalonsPage.css"; // Keep same CSS
+
+const LIMIT = 20;
 
 const SpasPage = () => {
+  const navigate = useNavigate();
+
   const [spas, setSpas] = useState([]);
+  const [page, setPage] = useState(1);
+
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
-  useEffect(() => {
-    const fetchSpas = async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:5000/api/spas?t=${Date.now()}`
-        );
+  const [hasMore, setHasMore] = useState(true);
 
-        if (!res.ok) {
-          throw new Error("Failed to fetch spas");
-        }
+  const [search, setSearch] = useState("");
 
-        const data = await res.json();
-        setSpas(data);
-      } catch (err) {
-        console.error("Error fetching spas:", err);
-      } finally {
-        setLoading(false);
+  const observer = useRef();
+  const loader = useRef();
+
+  const fetchSpas = useCallback(async (pageNo) => {
+    try {
+      if (pageNo === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
       }
-    };
 
-    fetchSpas();
+      const res = await fetch(
+        `https://www.heal-zone.com/api/spas?page=${pageNo}&limit=${LIMIT}`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch spas");
+      }
+
+      const data = await res.json();
+
+console.log("API Response:", data);
+
+setSpas((prev) => [...prev, ...data.spas]);
+
+setHasMore(data.hasMore);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ padding: "30px" }}>
-        <h2>Loading spas...</h2>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchSpas(page);
+  }, [page, fetchSpas]);
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (observer.current) {
+      observer.current.disconnect();
+    }
+
+    observer.current = new IntersectionObserver((entries) => {
+      if (
+        entries[0].isIntersecting &&
+        hasMore &&
+        !loadingMore
+      ) {
+        setPage((prev) => prev + 1);
+      }
+    });
+
+    if (loader.current) {
+      observer.current.observe(loader.current);
+    }
+
+    return () => observer.current.disconnect();
+  }, [hasMore, loadingMore, loading]);
+
+  const filteredSpas = useMemo(() => {
+    const q = search.toLowerCase();
+
+    return spas.filter((spa) => {
+      return (
+        spa.SalonName?.toLowerCase().includes(q) ||
+        spa.AddressJson?.simpleFormatted
+          ?.toLowerCase()
+          .includes(q) ||
+        spa.ServicesJson?.[0]?.name
+          ?.toLowerCase()
+          .includes(q)
+      );
+    });
+  }, [spas, search]);
 
   return (
-    <div style={{ padding: "30px" }}>
-      <h1>Spas</h1>
-
-      {spas.length === 0 ? (
-        <p>No spas found.</p>
-      ) : (
-        spas.map((spa) => (
-          <div
-            key={spa._id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "10px",
-              padding: "20px",
-              marginBottom: "20px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              background: "#fff",
-            }}
+    <div className="salon-page">
+      <div className="salon-header">
+        <div className="salon-header-inner">
+          <button
+            className="logo-btn"
+            onClick={() => navigate("/")}
           >
-            {/* Image */}
-            {spa.ImagesJson?.length > 0 && (
-              <img
-                src={spa.ImagesJson[0].url}
-                alt={spa.SalonName}
-                style={{
-                  width: "100%",
-                  height: "220px",
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                  marginBottom: "15px",
-                }}
-              />
-            )}
+            <img
+              src="/healonelogo.png"
+              alt="HealZone"
+            />
+          </button>
 
-            {/* Name */}
-            <h2>{spa.SalonName}</h2>
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search spa, service..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
 
-            {/* Rating */}
-            <p>
-              <strong>⭐ Rating:</strong> {spa.Rating}
-            </p>
+      <div className="salon-title">
+        <h1>Discover Spas</h1>
+        <p>Find top-rated spas near you</p>
+      </div>
 
-            {/* Reviews */}
-            <p>
-              <strong>💬 Reviews:</strong> {spa.ReviewsCount}
-            </p>
+      <div className="salon-shell">
+        {loading ? (
+          <div className="empty-state">
+            Loading spas...
+          </div>
+        ) : filteredSpas.length === 0 ? (
+          <div className="empty-state">
+            No spas found.
+          </div>
+        ) : (
+          <>
+            <div className="salon-card-grid">
+              {filteredSpas.map((spa) => {
+                const service = spa.ServicesJson?.[0];
 
-            {/* Address */}
-            <p>
-              <strong>📍 Address:</strong>{" "}
-              {spa.AddressJson?.simpleFormatted || "Not Available"}
-            </p>
+                return (
+                  <div
+                    key={spa._id}
+                    className="salon-card"
+                    onClick={() => navigate(`/spa/${spa._id}`)}
+                  >
+                    <img
+                      className="salon-image"
+                      src={
+                        spa.ImagesJson?.[0]?.url ||
+                        "https://via.placeholder.com/400x250"
+                      }
+                      alt={spa.SalonName}
+                    />
 
-            {/* Distance */}
-            <p>
-              <strong>📏 Distance:</strong>{" "}
-              {spa.DistanceFormatted || "N/A"}
-            </p>
+                    <div className="rating-row">
+                      <span className="rating">
+                        ⭐ {spa.Rating}
+                      </span>
 
-            {/* Service Count */}
-            <p>
-              <strong>💆 Services:</strong> {spa.ServiceCount}
-            </p>
+                      <span className="reviews">
+                        {spa.ReviewsCount} Reviews
+                      </span>
+                    </div>
 
-            {/* First Service */}
-            {spa.ServicesJson?.length > 0 && (
-              <>
-                <p>
-                  <strong>Service:</strong> {spa.ServicesJson[0].name}
-                </p>
+                    <h3>{spa.SalonName}</h3>
 
-                <p>
-                  <strong>Price:</strong>{" "}
-                  {spa.ServicesJson[0].formattedRetailPrice}
-                </p>
+                    <p className="address">
+                      📍 {spa.AddressJson?.simpleFormatted}
+                    </p>
 
-                <p>
-                  <strong>Duration:</strong>{" "}
-                  {spa.ServicesJson[0].caption}
-                </p>
-              </>
-            )}
+                    {service && (
+                      <>
+                        <p className="service">
+                          💆 {service.name}
+                        </p>
 
-            <button
+                        <p className="price">
+                          💰 {service.formattedRetailPrice}
+                        </p>
+
+                        <p className="duration">
+                          ⏱ {service.caption}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div
+              ref={loader}
               style={{
-                marginTop: "15px",
-                padding: "10px 20px",
-                background: "#4CAF50",
-                color: "#fff",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
+                padding: "40px",
+                textAlign: "center",
               }}
             >
-              Book Now
-            </button>
-          </div>
-        ))
-      )}
+              {loadingMore && (
+                <h3>Loading more spas...</h3>
+              )}
+
+              {!hasMore && (
+                <h3>🎉 You've reached the end.</h3>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };
