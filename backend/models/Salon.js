@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const SalonSchema = new mongoose.Schema({}, {
   strict: false,
-  collection: "salons"
+  collection: "spas"
 });
 
-module.exports = mongoose.model("Salon", SalonSchema);
+module.exports =
+  mongoose.models.Salon || mongoose.model("Salon", SalonSchema);

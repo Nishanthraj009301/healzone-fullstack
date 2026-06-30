@@ -139,8 +139,14 @@ doctorId,
         `,
       });
     } catch (emailError) {
-      console.error("Email failed:", emailError.message);
-    }
+
+  return res.status(500).json({
+    success: false,
+    message: "Email failed",
+    error: emailError.response?.data || emailError.message,
+  });
+
+}
 
     /* ================= SUCCESS RESPONSE ================= */
 

@@ -1,14 +1,14 @@
-const SalonBooking = require("../models/SalonBooking");
-const Salon = require("../models/Salon");
+const SpaBooking = require("../models/SpaBooking");
+const Spa = require("../models/Spa");
 const sendEmail = require("../utils/sendEmail");
 
 /* =========================================================
-   CREATE SALON BOOKING (Protected Route Required)
+   CREATE SPA BOOKING (Protected Route Required)
 ========================================================= */
-exports.createSalonBooking = async (req, res) => {
+exports.createSpaBooking = async (req, res) => {
   try {
     const {
-      salonId,
+      spaId,
       serviceId,
       serviceName,
       servicePrice,
@@ -18,9 +18,9 @@ exports.createSalonBooking = async (req, res) => {
 
     /* ================= BASIC VALIDATION ================= */
 
-    if (!salonId) {
+    if (!spaId) {
       return res.status(400).json({
-        message: "Salon ID is required",
+        message: "Spa ID is required",
       });
     }
 
@@ -42,20 +42,20 @@ exports.createSalonBooking = async (req, res) => {
       });
     }
 
-    /* ================= FETCH SALON ================= */
+    /* ================= FETCH SPA ================= */
 
-    const salon = await Salon.findById(salonId);
+    const spa = await Spa.findById(spaId);
 
-    if (!salon) {
+    if (!spa) {
       return res.status(404).json({
-        message: "Salon not found",
+        message: "Spa not found",
       });
     }
 
     /* ================= PREVENT DOUBLE BOOKING ================= */
 
-    const existingBooking = await SalonBooking.findOne({
-      salonId,
+    const existingBooking = await SpaBooking.findOne({
+      spaId,
       bookingDate: new Date(bookingDate),
       bookingTime,
       status: { $ne: "CANCELLED" },
@@ -69,16 +69,16 @@ exports.createSalonBooking = async (req, res) => {
 
     /* ================= CREATE BOOKING ================= */
 
-    const booking = await SalonBooking.create({
+    const booking = await SpaBooking.create({
       referenceNumber: "HZS-" + Date.now(),
 
       user: req.user._id,
 
-      salonId,
+      spaId,
 
       serviceId,
 
-      salonName: salon.name,
+      spaName: spa.SalonName,
 
       serviceName,
 
@@ -98,11 +98,13 @@ exports.createSalonBooking = async (req, res) => {
     /* ================= PREPARE EMAIL DATA ================= */
 
     const mapsLink =
-      salon.latitude && salon.longitude
-        ? `https://www.google.com/maps?q=${salon.latitude},${salon.longitude}`
-        : null;
+  spa.AddressJson?.latitude &&
+  spa.AddressJson?.longitude
+    ? `https://www.google.com/maps?q=${spa.AddressJson.latitude},${spa.AddressJson.longitude}`
+    : null;
 
-    const salonAddress = `${salon.address1 || ""}, ${salon.city || ""}`;
+    const spaAddress =
+  spa.AddressJson?.simpleFormatted || "Address not available";
 
     /* ================= SEND CONFIRMATION EMAIL ================= */
 
@@ -110,7 +112,7 @@ exports.createSalonBooking = async (req, res) => {
       console.log("========== BEFORE EMAIL ==========");
       await sendEmail({
         to: booking.customerEmail,
-        subject: "HealZone – Salon Booking Confirmed",
+        subject: "HealZone – Spa Booking Confirmed",
         html: `
 <div style="font-family:Arial,Helvetica,sans-serif;background:#f4f6f9;padding:40px 20px;">
   <div style="max-width:650px;margin:auto;background:#ffffff;border-radius:10px;padding:30px;box-shadow:0 2px 8px rgba(0,0,0,.1);">
@@ -121,7 +123,7 @@ exports.createSalonBooking = async (req, res) => {
       </h1>
 
       <h2 style="color:#16a34a;margin-top:0;">
-        ✅ Salon Booking Confirmed
+        ✅ Spa Booking Confirmed
       </h2>
     </div>
 
@@ -129,23 +131,23 @@ exports.createSalonBooking = async (req, res) => {
 
     <p>
       Thank you for booking with <strong>HealZone</strong>.
-      Your salon appointment has been successfully confirmed.
+      Your spa appointment has been successfully confirmed.
     </p>
 
     <hr style="margin:25px 0;">
 
-    <h3 style="color:#2563eb;">💇 Salon Details</h3>
+    <h3 style="color:#2563eb;">💇 Spa Details</h3>
 
     <table style="width:100%;border-collapse:collapse;">
 
       <tr>
-        <td style="padding:8px;"><strong>Salon</strong></td>
-        <td>${booking.salonName}</td>
+        <td style="padding:8px;"><strong>Spa</strong></td>
+        <td>${booking.spaName}</td>
       </tr>
 
       <tr>
         <td style="padding:8px;"><strong>Address</strong></td>
-        <td>${salonAddress}</td>
+        <td>${spaAddress}</td>
       </tr>
 
     </table>
@@ -243,12 +245,12 @@ exports.createSalonBooking = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Salon booking created successfully",
+      message: "Spa booking created successfully",
       booking,
     });
 
   } catch (err) {
-    console.error("SALON BOOKING ERROR:", err);
+    console.error("SPA BOOKING ERROR:", err);
 
     return res.status(500).json({
       success: false,
@@ -259,13 +261,13 @@ exports.createSalonBooking = async (req, res) => {
 };
 
 /* =========================================================
-   CANCEL SALON BOOKING
+   CANCEL spa BOOKING
 ========================================================= */
 
-exports.cancelSalonBooking = async (req, res) => {
+exports.cancelSpaBooking = async (req, res) => {
   try {
 
-    const booking = await SalonBooking.findById(req.params.id);
+    const booking = await SpaBooking.findById(req.params.id);
 
     if (!booking) {
       return res.status(404).json({
@@ -285,12 +287,12 @@ exports.cancelSalonBooking = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Salon booking cancelled successfully",
+      message: "Spa booking cancelled successfully",
     });
 
   } catch (err) {
 
-    console.error("CANCEL SALON BOOKING ERROR:", err);
+    console.error("CANCEL SPA BOOKING ERROR:", err);
 
     res.status(500).json({
       success: false,
@@ -301,23 +303,23 @@ exports.cancelSalonBooking = async (req, res) => {
 };
 
 /* =========================================================
-   GET USER SALON BOOKINGS
+   GET USER spa BOOKINGS
 ========================================================= */
 
-exports.getMySalonBookings = async (req, res) => {
+exports.getMySpaBookings = async (req, res) => {
   try {
 
-    const bookings = await SalonBooking.find({
+    const bookings = await SpaBooking.find({
       user: req.user._id,
     })
-      .populate("salonId", "name address1 city")
+      .populate("spaId", "SalonName AddressJson")
       .sort({ bookingDate: -1 });
 
     res.json(bookings);
 
   } catch (error) {
 
-    console.error("Error fetching salon bookings:", error);
+    console.error("Error fetching spa bookings:", error);
 
     res.status(500).json({
       message: "Server error",
@@ -327,14 +329,14 @@ exports.getMySalonBookings = async (req, res) => {
 };
 
 /* =========================================================
-   GET BOOKINGS FOR SALON OWNER DASHBOARD
+   GET BOOKINGS FOR spa OWNER DASHBOARD
 ========================================================= */
 
-exports.getSalonBookings = async (req, res) => {
+exports.getSpaBookings = async (req, res) => {
   try {
 
-    const bookings = await SalonBooking.find({
-      salonId: req.params.salonId,
+    const bookings = await SpaBooking.find({
+      spaId: req.params.spaId,
     })
       .populate("user", "name email")
       .sort({ bookingDate: 1 });
@@ -346,11 +348,11 @@ exports.getSalonBookings = async (req, res) => {
 
   } catch (error) {
 
-    console.error("Salon bookings error:", error);
+    console.error("spa bookings error:", error);
 
     res.status(500).json({
       success: false,
-      message: "Failed to fetch salon bookings",
+      message: "Failed to fetch spa bookings",
     });
 
   }

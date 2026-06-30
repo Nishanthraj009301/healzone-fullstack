@@ -16,6 +16,7 @@ const Vendor = require("./models/Vendor");
 const Salon = require("./models/Salon");
 const salonBookingRoutes = require("./routes/salonBookingRoutes");
 const Spa = require("./models/Spa");
+const spaBookingRoutes = require("./routes/spaBookingRoutes");
 const path = require("path");
 
 const app = express();
@@ -85,6 +86,7 @@ app.use("/api/vendors", vendorRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/salon-bookings", salonBookingRoutes);
+app.use("/api/spa-bookings", spaBookingRoutes);
 
 
 /* =========================================================
@@ -549,22 +551,33 @@ app.get("/api/salons/:id", async (req, res) => {
 });
 
 /*========================================================
-Spa  API
+Spa API
 =========================================================*/
 app.get("/api/spas", async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const skip = (page - 1) * limit;
 
     const spas = await Spa.find({})
-      .limit(20)
+      .skip(skip)
+      .limit(limit)
       .lean();
 
-    res.json(spas);
+    const total = await Spa.countDocuments();
+
+    res.json({
+      spas,
+      hasMore: skip + spas.length < total,
+    });
 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message: err.message,
+    });
   }
 });
-
 /*========================================================
 Spa  Single API
 =========================================================*/
