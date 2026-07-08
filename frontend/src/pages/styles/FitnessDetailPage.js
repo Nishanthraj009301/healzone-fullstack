@@ -364,7 +364,7 @@ onSuccess={() => {
     try {
 
       const response = await fetch(
-        "https://www.heal-zone.com//api/fitness-bookings",
+        "https://www.heal-zone.com/api/fitness-bookings",
         {
           method: "POST",
           credentials: "include", // send JWT cookie
@@ -372,7 +372,7 @@ onSuccess={() => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-  fitnessID: fitness._id,
+  fitnessId: fitness._id,
   serviceId: selectedService.id,
   serviceName: selectedService.name,
   servicePrice: selectedService.formattedRetailPrice,
