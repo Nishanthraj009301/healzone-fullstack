@@ -42,7 +42,7 @@ const FitnessPage = () => {
     }
 
     const res = await fetch(
-      `http://localhost:5000/api/fitness?page=${pageNo}&limit=${LIMIT}`,
+      `https://www.heal-zone.com/api/fitness?page=${pageNo}&limit=${LIMIT}`,
       {
         credentials: "include",
       }
