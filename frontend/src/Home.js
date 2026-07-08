@@ -519,14 +519,14 @@ export default function Home() {
         </div>
 
         <div
-          className="card gold clickable"
-          onClick={() => setComingSoon("Physical Health")}
-        >
-          <Icon type="physical" />
-          <h3>Physical Health</h3>
-          <p>Personal trainers and fitness programs.</p>
-          <button>Stay Fit</button>
-        </div>
+  className="card gold clickable"
+  onClick={() => navigate("/fitness")}
+>
+  <Icon type="physical" />
+  <h3>Physical Health</h3>
+  <p>Personal trainers and fitness programs.</p>
+  <button>Stay Fit</button>
+</div>
 
         <div
   className="card green clickable"

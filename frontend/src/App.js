@@ -22,6 +22,8 @@ import SalonsPage from "./pages/SalonsPage";
 import SpasPage from "./pages/SpasPage";
 import SalonDetailsPage from "./pages/styles/SalonDetailsPage";
 import SpaDetailsPage from "./pages/styles/SpasDetailPage";
+import FitnessPage from "./pages/FitnessPage";
+import FitnessDetailPage from "./pages/styles/FitnessDetailPage";
 
 // ================= ADMIN =================
 import AdminLogin from "./admin/AdminLogin";
@@ -92,8 +94,10 @@ function App() {
                   <Route path="/vendor/appointments" element={<VendorAppointments />} />
                   <Route path="/salons" element={<SalonsPage />} />
                   <Route path="/salon/:id" element={<SalonDetailsPage />} />
-<Route path="/spas" element={<SpasPage />} />
-<Route path="/spa/:id" element={<SpaDetailsPage />} />
+                  <Route path="/spas" element={<SpasPage />} />
+                  <Route path="/spa/:id" element={<SpaDetailsPage />} />
+                  <Route path="/fitness" element={<FitnessPage />} />
+                  <Route path="/fitness/:id" element={<FitnessDetailPage />} />
                   <Route
                     path="*"
                     element={

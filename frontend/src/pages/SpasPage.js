@@ -27,40 +27,51 @@ const SpasPage = () => {
 
   const observer = useRef();
   const loader = useRef();
+  const fetchedPages = useRef(new Set());
 
-  const fetchSpas = useCallback(async (pageNo) => {
-    try {
-      if (pageNo === 1) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
-      }
+const fetchSpas = useCallback(async (pageNo) => {
+  if (fetchedPages.current.has(pageNo)) return;
 
-      const res = await fetch(
-        `https://www.heal-zone.com/api/spas?page=${pageNo}&limit=${LIMIT}`,
-        {
-          credentials: "include",
-        }
-      );
+  fetchedPages.current.add(pageNo);
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch spas");
-      }
-
-      const data = await res.json();
-
-console.log("API Response:", data);
-
-setSpas((prev) => [...prev, ...data.spas]);
-
-setHasMore(data.hasMore);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
+  try {
+    if (pageNo === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
     }
-  }, []);
+
+    const res = await fetch(
+      `https://www.heal-zone.com/api/spas?page=${pageNo}&limit=${LIMIT}`,
+      {
+        credentials: "include",
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch spas");
+    }
+
+    const data = await res.json();
+
+    console.log("API Response:", data);
+
+    if (pageNo === 1) {
+      setSpas(data.spas);
+    } else {
+      setSpas((prev) => [...prev, ...data.spas]);
+    }
+
+    setHasMore(data.hasMore);
+
+  } catch (err) {
+    fetchedPages.current.delete(pageNo);
+    console.error(err);
+  } finally {
+    setLoading(false);
+    setLoadingMore(false);
+  }
+}, []);
 
   useEffect(() => {
     fetchSpas(page);
