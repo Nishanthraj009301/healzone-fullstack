@@ -14,9 +14,11 @@ const Doctor = require("./models/Doctor");
 const Booking = require("./models/Booking");
 const Vendor = require("./models/Vendor");
 const Salon = require("./models/Salon");
+const Fitness = require("./models/Fitness");
 const salonBookingRoutes = require("./routes/salonBookingRoutes");
 const Spa = require("./models/Spa");
 const spaBookingRoutes = require("./routes/spaBookingRoutes");
+const fitnessBookingRoutes = require("./routes/fitnessBookingRoutes");
 const path = require("path");
 
 const app = express();
@@ -87,6 +89,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/salon-bookings", salonBookingRoutes);
 app.use("/api/spa-bookings", spaBookingRoutes);
+app.use("/api/fitness-bookings", fitnessBookingRoutes);
 
 
 /* =========================================================
@@ -568,9 +571,9 @@ app.get("/api/spas", async (req, res) => {
     const total = await Spa.countDocuments();
 
     res.json({
-      spas,
-      hasMore: skip + spas.length < total,
-    });
+  spas,
+  hasMore: skip + spas.length < total,
+});
 
   } catch (err) {
     res.status(500).json({
@@ -596,6 +599,57 @@ app.get("/api/spas/:id", async (req, res) => {
 
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+/*========================================================
+Fitness API
+=========================================================*/
+app.get("/api/fitness", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const skip = (page - 1) * limit;
+
+    const fitness = await Fitness.find({})
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await Fitness.countDocuments();
+
+    res.json({
+      fitness,
+      hasMore: skip + fitness.length < total,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
+
+/*========================================================
+Fitness Single API
+=========================================================*/
+app.get("/api/fitness/:id", async (req, res) => {
+  try {
+    const fitness = await Fitness.findById(req.params.id);
+
+    if (!fitness) {
+      return res.status(404).json({
+        message: "Fitness center not found",
+      });
+    }
+
+    res.json(fitness);
+
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
   }
 });
 
