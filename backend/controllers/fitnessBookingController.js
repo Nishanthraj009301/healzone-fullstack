@@ -78,7 +78,7 @@ exports.createFitnessBooking = async (req, res) => {
 
       serviceId,
 
-      fitnessName: fitness.SalonName,
+      fitnessName: fitness.VenueName,
 
       serviceName,
 
@@ -310,7 +310,7 @@ exports.getMyFitnessBookings = async (req, res) => {
     const bookings = await FitnessBooking.find({
       user: req.user._id,
     })
-      .populate("fitnessId", "SalonName AddressJson")
+      .populate("fitnessId", "VenueName AddressJson")
       .sort({ bookingDate: -1 });
 
     res.json(bookings);
