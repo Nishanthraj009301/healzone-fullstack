@@ -32,7 +32,7 @@ const [showConfirmModal, setShowConfirmModal] = useState(false);
 const [bookingLoading, setBookingLoading] = useState(false);
 
 useEffect(() => {
-    fetch(`http://localhost:5000/api/fitness/${id}`, {
+    fetch(`https://www.heal-zone.com//api/fitness/${id}`, {
         credentials: "include",
     })
         .then((res) => res.json())
@@ -364,7 +364,7 @@ onSuccess={() => {
     try {
 
       const response = await fetch(
-        "http://localhost:5000/api/fitness-bookings",
+        "https://www.heal-zone.com//api/fitness-bookings",
         {
           method: "POST",
           credentials: "include", // send JWT cookie
