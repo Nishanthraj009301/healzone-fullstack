@@ -24,6 +24,8 @@ import SalonDetailsPage from "./pages/styles/SalonDetailsPage";
 import SpaDetailsPage from "./pages/styles/SpasDetailPage";
 import FitnessPage from "./pages/FitnessPage";
 import FitnessDetailPage from "./pages/styles/FitnessDetailPage";
+import MentalHealthPage from "./pages/MentalHealthPage";
+import MentalHealthDetailsPage from "./pages/styles/MentalHealthDetailsPage";
 
 // ================= ADMIN =================
 import AdminLogin from "./admin/AdminLogin";
@@ -98,6 +100,8 @@ function App() {
                   <Route path="/spa/:id" element={<SpaDetailsPage />} />
                   <Route path="/fitness" element={<FitnessPage />} />
                   <Route path="/fitness/:id" element={<FitnessDetailPage />} />
+                  <Route path="/mental-health" element={<MentalHealthPage />}/>
+                  <Route path="/mental-health/:id" element={<MentalHealthDetailsPage />} />
                   <Route
                     path="*"
                     element={

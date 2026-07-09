@@ -510,7 +510,7 @@ export default function Home() {
 
         <div
           className="card purple clickable"
-          onClick={() => setComingSoon("Mental Health")}
+          onClick={() => navigate("/mental-health")}
         >
           <Icon type="mental" />
           <h3>Mental Health</h3>
@@ -519,19 +519,19 @@ export default function Home() {
         </div>
 
         <div
-  className="card gold clickable"
-  onClick={() => navigate("/fitness")}
->
-  <Icon type="physical" />
-  <h3>Physical Health</h3>
-  <p>Personal trainers and fitness programs.</p>
-  <button>Stay Fit</button>
-</div>
+          className="card gold clickable"
+          onClick={() => navigate("/fitness")}
+        >
+          <Icon type="physical" />
+          <h3>Physical Health</h3>
+          <p>Personal trainers and fitness programs.</p>
+          <button>Stay Fit</button>
+        </div>
 
         <div
-  className="card green clickable"
-  onClick={() => navigate("/spas")}
-> 
+          className="card green clickable"
+          onClick={() => navigate("/spas")}
+        >
           <Icon type="spa" />
           <h3>Spa & Retreats</h3>
           <p>Relax and rejuvenate at top-rated retreats.</p>
@@ -539,9 +539,9 @@ export default function Home() {
         </div>
 
         <div
-  className="card pink clickable"
-  onClick={() => navigate("/salons")}
->
+          className="card pink clickable"
+          onClick={() => navigate("/salons")}
+        >
           <Icon type="beauty" />
           <h3>Beauty Parlour</h3>
           <p>Book beauty and wellness treatments near you.</p>
