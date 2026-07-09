@@ -14,11 +14,15 @@ const Doctor = require("./models/Doctor");
 const Booking = require("./models/Booking");
 const Vendor = require("./models/Vendor");
 const Salon = require("./models/Salon");
-const Fitness = require("./models/Fitness");
-const salonBookingRoutes = require("./routes/salonBookingRoutes");
 const Spa = require("./models/Spa");
+const Fitness = require("./models/Fitness");
+const MentalHealth = require("./models/MentalHealth");
+
+
+const salonBookingRoutes = require("./routes/salonBookingRoutes");
 const spaBookingRoutes = require("./routes/spaBookingRoutes");
 const fitnessBookingRoutes = require("./routes/fitnessBookingRoutes");
+const mentalHealthBookingRoutes = require("./routes/mentalHealthBookingRoutes");
 const path = require("path");
 
 const app = express();
@@ -90,6 +94,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/salon-bookings", salonBookingRoutes);
 app.use("/api/spa-bookings", spaBookingRoutes);
 app.use("/api/fitness-bookings", fitnessBookingRoutes);
+app.use("/api/mental-health-bookings", mentalHealthBookingRoutes);
 
 
 /* =========================================================
@@ -645,6 +650,57 @@ app.get("/api/fitness/:id", async (req, res) => {
     }
 
     res.json(fitness);
+
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
+
+/*========================================================
+Mental Health API
+=========================================================*/
+app.get("/api/mental-health", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const skip = (page - 1) * limit;
+
+    const mentalHealth = await MentalHealth.find({})
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await MentalHealth.countDocuments();
+
+    res.json({
+      mentalHealth,
+      hasMore: skip + mentalHealth.length < total,
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
+
+/*========================================================
+Mental Health Single API
+=========================================================*/
+app.get("/api/mental-health/:id", async (req, res) => {
+  try {
+    const mentalHealth = await MentalHealth.findById(req.params.id);
+
+    if (!mentalHealth) {
+      return res.status(404).json({
+        message: "Mental Health center not found",
+      });
+    }
+
+    res.json(mentalHealth);
 
   } catch (err) {
     res.status(500).json({
